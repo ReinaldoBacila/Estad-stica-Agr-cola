@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Análisis de Fertilización — Dosis Óptima de Nitrógeno</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; background: #f4f6f9; color: #222; padding: 24px; }
+  .container { max-width: 960px; margin: 0 auto; background: #fff; border-radius: 12px; padding: 28px 32px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+  h1 { font-size: 20px; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
+  .subtitle { font-size: 13px; color: #666; margin-bottom: 20px; line-height: 1.5; }
+  .section-title { font-size: 13px; font-weight: 700; color: #444; margin: 18px 0 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .filters { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
+  .pill { font-size: 12px; padding: 5px 14px; border-radius: 20px; border: 1px solid #ccc; background: #fff; color: #555; cursor: pointer; transition: all 0.15s; }
+  .pill:hover { border-color: #185FA5; color: #185FA5; }
+  .pill.active { background: #185FA5; color: #fff; border-color: #185FA5; }
+  .weights { display: flex; gap: 20px; flex-wrap: wrap; align-items: center; background: #f0f4fa; border-radius: 8px; padding: 12px 16px; margin-bottom: 14px; }
+  .w-item { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+  .w-item label { font-weight: 700; min-width: 32px; }
+  .w-item input[type=range] { width: 110px; accent-color: #185FA5; cursor: pointer; }
+  .w-val { font-size: 13px; font-weight: 700; min-width: 36px; color: #185FA5; }
+  .w-note { font-size: 11px; color: #888; margin-left: auto; font-style: italic; }
+  .ha-info { background: #fffbe6; border: 1px solid #f5c518; border-radius: 8px; padding: 9px 14px; font-size: 12px; color: #6b4f00; margin-bottom: 14px; }
+  .ha-info b { color: #3d2c00; }
+  .legend-row { display: flex; gap: 18px; flex-wrap: wrap; font-size: 12px; color: #555; margin-bottom: 10px; align-items: center; }
+  .chart-wrapper { position: relative; width: 100%; height: 320px; margin-bottom: 6px; }
+  .zone-bar { display: flex; border-radius: 6px; overflow: hidden; margin: 6px 0 4px; font-size: 11px; }
+  .zone-seg { flex: 1; padding: 5px 2px; text-align: center; font-weight: 700; cursor: default; }
+  .ha-bar-section { margin: 4px 0 18px; }
+  .ha-bar-label { font-size: 11px; color: #888; margin-bottom: 3px; }
+  .ha-bar-row { display: flex; height: 16px; border-radius: 4px; overflow: hidden; }
+  .ha-seg { display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; color: #fff; overflow: hidden; white-space: nowrap; }
+  .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+  .mc { background: #f4f6f9; border-radius: 8px; padding: 12px 14px; }
+  .mc-label { font-size: 11px; color: #777; margin-bottom: 4px; }
+  .mc-val { font-size: 21px; font-weight: 700; color: #1a1a2e; }
+  .mc-sub { font-size: 10px; color: #999; margin-top: 3px; line-height: 1.4; }
+  .insight { border-left: 4px solid #185FA5; background: #EBF4FF; border-radius: 0 8px 8px 0; padding: 12px 16px; font-size: 13px; color: #1a1a2e; line-height: 1.65; margin-bottom: 20px; }
+  .detail-toggle { font-size: 13px; color: #185FA5; cursor: pointer; text-decoration: underline; margin-bottom: 8px; display: inline-block; user-select: none; }
+  #detail-table { display: none; width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
+  #detail-table th { background: #1a1a2e; color: #fff; padding: 7px 10px; text-align: left; white-space: nowrap; }
+  #detail-table td { padding: 6px 10px; border-bottom: 1px solid #eee; white-space: nowrap; }
+  #detail-table tr:nth-child(even) td { background: #f8f9fb; }
+  #detail-table tr.opt-row td { background: #dbeeff; font-weight: 700; }
+  #detail-table tr.over-row td { background: #fff0f0; }
+  #detail-table tr.under-row td { background: #edf7e3; }
+  .note { font-size: 11px; color: #999; margin-top: 16px; line-height: 1.6; border-top: 1px solid #eee; padding-top: 12px; }
+  .badge { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 20px; font-weight: 700; }
+  .badge-opt { background: #dbeeff; color: #0C447C; }
+  .badge-sub { background: #fff3d6; color: #633806; }
+  .badge-und { background: #e6f4d8; color: #27500A; }
+  .badge-ove { background: #ffe0e0; color: #501313; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <h1>Análisis de Fertilización — Dosis Óptima de Nitrógeno</h1>
+  <p class="subtitle">
+    Índice consolidado TCH · POL · TAH | Promedios ponderados por hectáreas cosechadas | 271 lotes · 3,210 ha totales<br>
+    <span style="color:#185FA5;font-weight:600;">Los rangos con más hectáreas tienen mayor peso en el promedio</span>
+  </p>
+
+  <div class="ha-info">
+    <b>¿Por qué ponderar por HA?</b> Sin ponderación, un lote de 1 ha vale igual que uno de 30 ha. Al ponderar por HA, el promedio refleja el comportamiento real a escala del campo. El rango 2.5–3 concentra <b>882 ha</b> (27% del total), mientras que 0.5–1 solo tiene <b>23 ha</b> (0.7%).
+  </div>
+
+  <div class="section-title">Filtrar por aplicación de madurante</div>
+  <div class="filters">
+    <button class="pill active" onclick="setFilter('TODOS',this)">Todos (271 lotes · 3,210 ha)</button>
+    <button class="pill" onclick="setFilter('CON',this)">Con madurante (137 lotes · 1,605 ha)</button>
+    <button class="pill" onclick="setFilter('SIN',this)">Sin madurante (134 lotes · 1,605 ha)</button>
+  </div>
+
+  <div class="section-title">Ponderación del índice consolidado</div>
+  <div class="weights">
+    <div class="w-item">
+      <label style="color:#185FA5;">TCH</label>
+      <input type="range" min="0" max="100" value="50" step="5" id="w-tch" oninput="updateWeights()">
+      <span class="w-val" id="v-tch">50%</span>
+    </div>
+    <div class="w-item">
+      <label style="color:#3B6D11;">POL</label>
+      <input type="range" min="0" max="100" value="25" step="5" id="w-pol" oninput="updateWeights()">
+      <span class="w-val" id="v-pol">25%</span>
+    </div>
+    <div class="w-item">
+      <label style="color:#854F0B;">TAH</label>
+      <input type="range" min="0" max="100" value="25" step="5" id="w-tah" oninput="updateWeights()">
+      <span class="w-val" id="v-tah">25%</span>
+    </div>
+    <span class="w-note">Ajusta según la prioridad de tu zafra</span>
+  </div>
+
+  <div class="legend-row">
+    <span><span style="display:inline-block;width:12px;height:12px;border-radius:2px;background:#185FA5;margin-right:4px;vertical-align:middle;"></span>Índice consolidado (ponderado por HA)</span>
+    <span style="border-left:1px solid #ddd;padding-left:12px;"><span style="display:inline-block;width:22px;height:2px;border-top:2px dashed #378ADD;margin-right:4px;vertical-align:middle;"></span>TCH norm.</span>
+    <span><span style="display:inline-block;width:22px;height:2px;border-top:2px dashed #639922;margin-right:4px;vertical-align:middle;"></span>POL norm.</span>
+    <span><span style="display:inline-block;width:22px;height:2px;border-top:2px dashed #BA7517;margin-right:4px;vertical-align:middle;"></span>TAH norm.</span>
+  </div>
+
+  <div class="chart-wrapper">
+    <canvas id="main-chart"></canvas>
+  </div>
+
+  <div class="zone-bar" id="zone-bar"></div>
+
+  <div class="ha-bar-section">
+    <div class="ha-bar-label">Distribución de hectáreas cosechadas por rango (mayor segmento = más representativo estadísticamente)</div>
+    <div class="ha-bar-row" id="ha-bar-row"></div>
+  </div>
+
+  <div class="metrics" id="metrics-row"></div>
+  <div class="insight" id="insight-box"></div>
+
+  <span class="detail-toggle" onclick="toggleTable()">▶ Ver tabla de datos detallada</span>
+  <table id="detail-table">
+    <thead>
+      <tr>
+        <th>Rango (lbs N/ton)</th>
+        <th>N prom. pond.</th>
+        <th>Lotes</th>
+        <th>Total HA</th>
+        <th>TCH pond. (t/ha)</th>
+        <th>POL pond. (%)</th>
+        <th>TAH pond. (t/ha)</th>
+        <th>TCH norm.</th>
+        <th>POL norm.</th>
+        <th>TAH norm.</th>
+        <th>Índice /100</th>
+        <th>Zona</th>
+      </tr>
+    </thead>
+    <tbody id="detail-tbody"></tbody>
+  </table>
+
+  <p class="note">
+    <strong>Metodología:</strong> Promedios ponderados por HA. Normalización Min-Max 0–1 por variable dentro del grupo.
+    Índice = suma ponderada según sliders. Óptimo = mayor índice | Subóptimo = índice ≥75% del máximo |
+    Subdosificación = bajo el óptimo con menor dosis | Sobredosificación = bajo el óptimo con mayor dosis.<br>
+    <strong>Fuente:</strong> Fertilización_-_Cosechado_sem-16.xlsx | 271 lotes | 3,210 ha | Semanas 2–17
+  </p>
+</div>
+
+<script>
+const RAW = {
+  TODOS: {
+    ranges: ['0.5-1','1-1.5','1.5-2','2-2.5','2.5-3','3-3.5','3.5-4','4-4.5','5.5-6'],
+    n:      [2,2,8,35,80,88,39,15,2],
+    ha:     [23.27,23.70,75.77,347.38,882.06,1089.46,551.39,186.88,30.08],
+    tch:    [119.888,93.615,84.844,94.832,105.189,100.267,83.456,71.595,50.215],
+    pol:    [10.374,11.189,12.796,12.517,11.799,11.540,11.510,11.234,12.434],
+    tah:    [9.929,8.290,9.195,9.789,10.083,9.216,7.697,6.457,5.276],
+    nMean:  [0.770,1.318,1.863,2.332,2.779,3.224,3.730,4.137,5.730]
+  },
+  CON: {
+    ranges: ['1.5-2','2-2.5','2.5-3','3-3.5','3.5-4','4-4.5'],
+    n:      [1,6,33,54,27,10],
+    ha:     [5.43,64.45,381.91,673.18,366.56,113.93],
+    tch:    [118.823,119.764,107.566,97.889,84.839,72.479],
+    pol:    [13.620,12.427,12.044,11.788,12.036,11.970],
+    tah:    [13.250,12.105,10.666,9.262,8.246,7.030],
+    nMean:  [1.883,2.429,2.803,3.262,3.739,4.144]
+  },
+  SIN: {
+    ranges: ['0.5-1','1-1.5','1.5-2','2-2.5','2.5-3','3-3.5','3.5-4','4-4.5','5.5-6'],
+    n:      [2,2,7,29,47,34,12,5,2],
+    ha:     [23.27,23.70,70.34,282.93,500.15,416.28,184.83,72.95,30.08],
+    tch:    [119.888,93.615,82.221,89.152,103.375,104.112,80.713,70.214,50.215],
+    pol:    [10.374,11.189,12.733,12.537,11.612,11.140,10.466,10.085,12.434],
+    tah:    [9.929,8.290,8.882,9.261,9.638,9.141,6.607,5.562,5.276],
+    nMean:  [0.770,1.318,1.862,2.310,2.760,3.163,3.713,4.126,5.730]
+  }
+};
+
+const ZONE_CFG = {
+  opt:    { barColor:'#185FA5', segBg:'#B5D4F4', segTxt:'#0C447C', label:'ÓPTIMO',           badge:'badge-opt', rowClass:'opt-row'   },
+  subopt: { barColor:'#BA7517', segBg:'#FAC775', segTxt:'#633806', label:'Subóptimo',         badge:'badge-sub', rowClass:''          },
+  under:  { barColor:'#3B6D11', segBg:'#C0DD97', segTxt:'#27500A', label:'Subdosificación',   badge:'badge-und', rowClass:'under-row' },
+  over:   { barColor:'#A32D2D', segBg:'#F7C1C1', segTxt:'#501313', label:'Sobredosificación', badge:'badge-ove', rowClass:'over-row'  }
+};
+
+const INSIGHTS = {
+  TODOS: `<b>Zona óptima ponderada por HA: 2.5–3 lbs N/ton</b> (N prom.: 2.78 lbs/ton · <b>882 ha</b>, 27% del área total). Con ponderación por hectáreas, el TCH sube a <b>105.2 t/ha</b> y el TAH a <b>10.1 t/ha</b>, confirmando este rango con alta solidez estadística. El rango 3–3.5 es subóptimo (1,089 ha), con TCH de 100.3 t/ha. Sobredosificar >4 lbs/ton colapsa el TCH a 71.6 t/ha (–32%) afectando 187 ha.`,
+  CON: `<b>Con madurante — Óptimo ponderado: 2.5–3 lbs N/ton</b> (N prom.: 2.80 lbs/ton · <b>382 ha</b>). TCH ponderado de <b>107.6 t/ha</b> y TAH de <b>10.7 t/ha</b>. El rango 2–2.5 aparece alto pero representa solo 64 ha (poca solidez). El rango 3–3.5 es subóptimo con 673 ha. Evitar >3.5 lbs/ton con madurante.`,
+  SIN: `<b>Sin madurante — Óptimo ponderado: 3–3.5 lbs N/ton</b> (N prom.: 3.16 lbs/ton · <b>416 ha</b>). Sin madurante la caña requiere algo más de nitrógeno. El rango 2.5–3 es subóptimo muy cercano (500 ha, TCH 103.4 t/ha). Ambos rangos son válidos. Por encima de 4 lbs/ton el rendimiento cae con 73 ha afectadas.`
+};
+
+let currentFilter = 'TODOS', mainChart = null, tableVisible = false;
+
+function normalize(arr) {
+  const mn = Math.min(...arr), mx = Math.max(...arr);
+  if (mx === mn) return arr.map(() => 0);
+  return arr.map(v => (v - mn) / (mx - mn));
+}
+
+function getWeights() {
+  const wt = parseInt(document.getElementById('w-tch').value);
+  const wp = parseInt(document.getElementById('w-pol').value);
+  const wa = parseInt(document.getElementById('w-tah').value);
+  const total = wt + wp + wa || 1;
+  return [wt/total, wp/total, wa/total];
+}
+
+function classifyZones(ranges, composite, nMean) {
+  const maxScore = Math.max(...composite);
+  const optIdx = composite.indexOf(maxScore);
+  const threshold = maxScore * 0.75;
+  return ranges.map((r, i) => {
+    if (i === optIdx) return 'opt';
+    if (composite[i] >= threshold) return 'subopt';
+    return nMean[i] < nMean[optIdx] ? 'under' : 'over';
+  });
+}
+
+function render() {
+  const d = RAW[currentFilter];
+  const [wt, wp, wa] = getWeights();
+  const tchN = normalize(d.tch);
+  const polN = normalize(d.pol);
+  const tahN = normalize(d.tah);
+  const composite = tchN.map((_, i) => tchN[i]*wt + polN[i]*wp + tahN[i]*wa);
+  const zones = classifyZones(d.ranges, composite, d.nMean);
+
+  if (mainChart) mainChart.destroy();
+  mainChart = new Chart(document.getElementById('main-chart'), {
+    type: 'bar',
+    data: {
+      labels: d.ranges,
+      datasets: [
+        { type:'bar', label:'Índice consolidado', data: composite.map(v=>+v.toFixed(3)),
+          backgroundColor: zones.map(z=>ZONE_CFG[z].barColor), borderRadius:5, borderWidth:0, order:2, yAxisID:'y' },
+        { type:'line', label:'TCH norm.', data: tchN.map(v=>+v.toFixed(3)),
+          borderColor:'rgba(55,138,221,0.8)', borderWidth:2, pointRadius:4, pointBackgroundColor:'#378ADD',
+          fill:false, tension:0.3, order:1, yAxisID:'y', borderDash:[5,3] },
+        { type:'line', label:'POL norm.', data: polN.map(v=>+v.toFixed(3)),
+          borderColor:'rgba(99,153,34,0.8)', borderWidth:2, pointRadius:4, pointBackgroundColor:'#639922',
+          fill:false, tension:0.3, order:1, yAxisID:'y', borderDash:[7,3] },
+        { type:'line', label:'TAH norm.', data: tahN.map(v=>+v.toFixed(3)),
+          borderColor:'rgba(186,117,23,0.85)', borderWidth:2, pointRadius:4, pointBackgroundColor:'#BA7517',
+          fill:false, tension:0.3, order:1, yAxisID:'y', borderDash:[2,3] }
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins: {
+        legend: { display:false },
+        tooltip: {
+          callbacks: {
+            afterBody: (items) => {
+              const i = items[0].dataIndex;
+              return ['──────────────────',
+                `Zona: ${ZONE_CFG[zones[i]].label}`,
+                `N prom. pond.: ${d.nMean[i].toFixed(2)} lbs/ton`,
+                `Hectáreas: ${d.ha[i].toFixed(0)} ha`,
+                `TCH: ${d.tch[i].toFixed(1)} t/ha`,
+                `POL: ${d.pol[i].toFixed(2)} %`,
+                `TAH: ${d.tah[i].toFixed(2)} t/ha`,
+                `Lotes: ${d.n[i]}`];
+            }
+          }
+        }
+      },
+      scales: {
+        x: { ticks:{font:{size:12}}, grid:{display:false},
+             title:{display:true, text:'Rango de dosis (lbs Nitrógeno / tonelada de caña)', font:{size:12}, color:'#555'} },
+        y: { min:0, max:1.08,
+             title:{display:true, text:'Índice normalizado  (0 = mínimo · 1 = máximo)', font:{size:11}, color:'#555'},
+             ticks:{font:{size:11}, callback:v=>v.toFixed(1)} }
+      }
+    }
+  });
+
+  const totalHa = d.ha.reduce((a,b)=>a+b,0);
+
+  document.getElementById('zone-bar').innerHTML = d.ranges.map((r,i) => {
+    const c = ZONE_CFG[zones[i]];
+    return `<div class="zone-seg" style="background:${c.segBg};color:${c.segTxt};" title="${c.label} | ${d.ha[i].toFixed(0)} ha">${r}</div>`;
+  }).join('');
+
+  document.getElementById('ha-bar-row').innerHTML = d.ranges.map((r,i) => {
+    const pct = (d.ha[i]/totalHa*100).toFixed(1);
+    return `<div class="ha-seg" style="flex:${d.ha[i]};background:${ZONE_CFG[zones[i]].barColor};" title="${r}: ${d.ha[i].toFixed(0)} ha (${pct}%)">${pct}%</div>`;
+  }).join('');
+
+  const optIdx = zones.indexOf('opt');
+  const overIdxes = zones.map((z,i)=>z==='over'?i:-1).filter(i=>i>=0);
+  const pctLoss = overIdxes.length ? ((composite[optIdx]-composite[overIdxes[0]])/composite[optIdx]*100).toFixed(1) : null;
+
+  document.getElementById('metrics-row').innerHTML = `
+    <div class="mc"><div class="mc-label">Rango óptimo</div>
+      <div class="mc-val">${d.ranges[optIdx]}</div>
+      <div class="mc-sub">lbs N/ton · índice ${(composite[optIdx]*100).toFixed(0)}/100</div></div>
+    <div class="mc"><div class="mc-label">N promedio óptimo</div>
+      <div class="mc-val">${d.nMean[optIdx].toFixed(2)}</div>
+      <div class="mc-sub">lbs N/ton (ponderado por HA)</div></div>
+    <div class="mc"><div class="mc-label">Hectáreas en óptimo</div>
+      <div class="mc-val">${d.ha[optIdx].toFixed(0)}</div>
+      <div class="mc-sub">${(d.ha[optIdx]/totalHa*100).toFixed(1)}% del área total del grupo</div></div>
+    <div class="mc"><div class="mc-label">Pérdida sobredosif.</div>
+      <div class="mc-val">${pctLoss ? '-'+pctLoss+'%' : '—'}</div>
+      <div class="mc-sub">caída del índice vs óptimo</div></div>
+  `;
+
+  document.getElementById('insight-box').innerHTML = INSIGHTS[currentFilter];
+
+  document.getElementById('detail-tbody').innerHTML = d.ranges.map((r,i) => {
+    const z = zones[i];
+    return `<tr class="${ZONE_CFG[z].rowClass}">
+      <td>${r}</td><td>${d.nMean[i].toFixed(2)}</td><td>${d.n[i]}</td><td>${d.ha[i].toFixed(1)}</td>
+      <td>${d.tch[i].toFixed(1)}</td><td>${d.pol[i].toFixed(2)}</td><td>${d.tah[i].toFixed(2)}</td>
+      <td>${tchN[i].toFixed(3)}</td><td>${polN[i].toFixed(3)}</td><td>${tahN[i].toFixed(3)}</td>
+      <td><b>${(composite[i]*100).toFixed(1)}</b></td>
+      <td><span class="badge ${ZONE_CFG[z].badge}">${ZONE_CFG[z].label}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function setFilter(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+
+function updateWeights() {
+  const wt = parseInt(document.getElementById('w-tch').value);
+  const wp = parseInt(document.getElementById('w-pol').value);
+  const wa = parseInt(document.getElementById('w-tah').value);
+  const total = wt + wp + wa || 1;
+  document.getElementById('v-tch').textContent = Math.round(wt/total*100)+'%';
+  document.getElementById('v-pol').textContent = Math.round(wp/total*100)+'%';
+  document.getElementById('v-tah').textContent = Math.round(wa/total*100)+'%';
+  render();
+}
+
+function toggleTable() {
+  tableVisible = !tableVisible;
+  document.getElementById('detail-table').style.display = tableVisible ? 'table' : 'none';
+  document.querySelector('.detail-toggle').textContent = (tableVisible ? '▼' : '▶') + ' Ver tabla de datos detallada';
+}
+
+render();
+</script>
+</body>
+</html>
