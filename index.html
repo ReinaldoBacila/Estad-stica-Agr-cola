@@ -3,27 +3,46 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- ============================================================
+     ETIQUETA 1 — TÍTULO DE LA PESTAÑA DEL NAVEGADOR
+     Cambia el texto entre <title> y </title>
+     ============================================================ -->
 <title>Análisis de Fertilización — Dosis Óptima de Nitrógeno</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: Arial, sans-serif; background: #f4f6f9; color: #222; padding: 24px; }
-  .container { max-width: 960px; margin: 0 auto; background: #fff; border-radius: 12px; padding: 28px 32px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+  .container { max-width: 980px; margin: 0 auto; background: #fff; border-radius: 12px; padding: 28px 32px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
   h1 { font-size: 20px; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
   .subtitle { font-size: 13px; color: #666; margin-bottom: 20px; line-height: 1.5; }
-  .section-title { font-size: 13px; font-weight: 700; color: #444; margin: 18px 0 8px; text-transform: uppercase; letter-spacing: 0.5px; }
-  .filters { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
-  .pill { font-size: 12px; padding: 5px 14px; border-radius: 20px; border: 1px solid #ccc; background: #fff; color: #555; cursor: pointer; transition: all 0.15s; }
+  .section-title { font-size: 12px; font-weight: 700; color: #444; margin: 16px 0 7px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  /* FILTER GROUPS */
+  .filter-group { margin-bottom: 14px; }
+  .filter-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .pill { font-size: 12px; padding: 5px 13px; border-radius: 20px; border: 1px solid #ccc; background: #fff; color: #555; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
   .pill:hover { border-color: #185FA5; color: #185FA5; }
   .pill.active { background: #185FA5; color: #fff; border-color: #185FA5; }
+  .pill.active-riego { background: #3B6D11; color: #fff; border-color: #3B6D11; }
+  .pill.active-sem { background: #854F0B; color: #fff; border-color: #854F0B; }
+
+  /* ACTIVE FILTER BADGE */
+  .active-filter-info { font-size: 12px; color: #666; background: #f0f4fa; border-radius: 6px; padding: 6px 12px; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .active-filter-info b { color: #1a1a2e; }
+  .filter-tag { display: inline-flex; align-items: center; gap: 5px; background: #fff; border: 1px solid #ccc; border-radius: 12px; padding: 2px 10px; font-size: 11px; }
+  .filter-tag.ft-mad  { border-color: #185FA5; color: #185FA5; }
+  .filter-tag.ft-riego{ border-color: #3B6D11; color: #3B6D11; }
+  .filter-tag.ft-sem  { border-color: #854F0B; color: #854F0B; }
+
+  /* WEIGHTS */
   .weights { display: flex; gap: 20px; flex-wrap: wrap; align-items: center; background: #f0f4fa; border-radius: 8px; padding: 12px 16px; margin-bottom: 14px; }
   .w-item { display: flex; align-items: center; gap: 8px; font-size: 13px; }
   .w-item label { font-weight: 700; min-width: 32px; }
   .w-item input[type=range] { width: 110px; accent-color: #185FA5; cursor: pointer; }
   .w-val { font-size: 13px; font-weight: 700; min-width: 36px; color: #185FA5; }
   .w-note { font-size: 11px; color: #888; margin-left: auto; font-style: italic; }
-  .ha-info { background: #fffbe6; border: 1px solid #f5c518; border-radius: 8px; padding: 9px 14px; font-size: 12px; color: #6b4f00; margin-bottom: 14px; }
-  .ha-info b { color: #3d2c00; }
+
   .legend-row { display: flex; gap: 18px; flex-wrap: wrap; font-size: 12px; color: #555; margin-bottom: 10px; align-items: center; }
   .chart-wrapper { position: relative; width: 100%; height: 320px; margin-bottom: 6px; }
   .zone-bar { display: flex; border-radius: 6px; overflow: hidden; margin: 6px 0 4px; font-size: 11px; }
@@ -32,12 +51,17 @@
   .ha-bar-label { font-size: 11px; color: #888; margin-bottom: 3px; }
   .ha-bar-row { display: flex; height: 16px; border-radius: 4px; overflow: hidden; }
   .ha-seg { display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; color: #fff; overflow: hidden; white-space: nowrap; }
+
   .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
   .mc { background: #f4f6f9; border-radius: 8px; padding: 12px 14px; }
   .mc-label { font-size: 11px; color: #777; margin-bottom: 4px; }
   .mc-val { font-size: 21px; font-weight: 700; color: #1a1a2e; }
   .mc-sub { font-size: 10px; color: #999; margin-top: 3px; line-height: 1.4; }
-  .insight { border-left: 4px solid #185FA5; background: #EBF4FF; border-radius: 0 8px 8px 0; padding: 12px 16px; font-size: 13px; color: #1a1a2e; line-height: 1.65; margin-bottom: 20px; }
+
+  /* WARN for low sample */
+  .warn-box { background: #fff8e6; border: 1px solid #f5c518; border-radius: 8px; padding: 9px 14px; font-size: 12px; color: #6b4f00; margin-bottom: 14px; display: none; }
+  .warn-box.show { display: block; }
+
   .detail-toggle { font-size: 13px; color: #185FA5; cursor: pointer; text-decoration: underline; margin-bottom: 8px; display: inline-block; user-select: none; }
   #detail-table { display: none; width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
   #detail-table th { background: #1a1a2e; color: #fff; padding: 7px 10px; text-align: left; white-space: nowrap; }
@@ -52,29 +76,117 @@
   .badge-sub { background: #fff3d6; color: #633806; }
   .badge-und { background: #e6f4d8; color: #27500A; }
   .badge-ove { background: #ffe0e0; color: #501313; }
+
+  /* STATS BAR */
+  .stats-bar { display: flex; gap: 18px; font-size: 12px; color: #666; margin-bottom: 14px; padding: 8px 14px; background: #f8f9fb; border-radius: 8px; flex-wrap: wrap; }
+  .stats-bar span b { color: #1a1a2e; }
+
+  @media (max-width: 640px) {
+    .metrics { grid-template-columns: repeat(2, 1fr); }
+    .container { padding: 18px 16px; }
+  }
 </style>
 </head>
 <body>
 <div class="container">
 
+  <!-- ============================================================
+       ETIQUETA 2 — TÍTULO PRINCIPAL (grande, arriba de todo)
+       Cambia el texto entre <h1> y </h1>
+       ============================================================ -->
   <h1>Análisis de Fertilización — Dosis Óptima de Nitrógeno</h1>
+
+  <!-- ============================================================
+       ETIQUETA 3 — SUBTÍTULO (línea descriptiva bajo el título)
+       Puedes cambiar ambas líneas de texto aquí
+       ============================================================ -->
   <p class="subtitle">
-    Índice consolidado TCH · POL · TAH | Promedios ponderados por hectáreas cosechadas | 271 lotes · 3,210 ha totales<br>
-    <span style="color:#185FA5;font-weight:600;">Los rangos con más hectáreas tienen mayor peso en el promedio</span>
+    Índice consolidado TCH · POL · TAH | Promedios ponderados por hectáreas cosechadas<br>
+    <span style="color:#185FA5;font-weight:600;">Estadística Agrícola</span>
   </p>
 
-  <div class="ha-info">
-    <b>¿Por qué ponderar por HA?</b> Sin ponderación, un lote de 1 ha vale igual que uno de 30 ha. Al ponderar por HA, el promedio refleja el comportamiento real a escala del campo. El rango 2.5–3 concentra <b>882 ha</b> (27% del total), mientras que 0.5–1 solo tiene <b>23 ha</b> (0.7%).
+  <!-- ============================================================
+       ETIQUETA 4 — FILTRO DE MADURANTE
+       Cambia los textos de los botones entre comillas ""
+       Ejemplo: "Todos" → "Sin filtro" | "Con madurante" → "Con producto"
+       ============================================================ -->
+  <!-- MADURANTE FILTER -->
+  <div class="filter-group">
+    <div class="section-title">Madurante</div>
+    <div class="filter-row" id="mad-pills">
+      <button class="pill active" data-mad="TODOS">Todos</button>
+      <button class="pill" data-mad="CON">Con madurante</button>
+      <button class="pill" data-mad="SIN">Sin madurante</button>
+    </div>
   </div>
 
-  <div class="section-title">Filtrar por aplicación de madurante</div>
-  <div class="filters">
-    <button class="pill active" onclick="setFilter('TODOS',this)">Todos (271 lotes · 3,210 ha)</button>
-    <button class="pill" onclick="setFilter('CON',this)">Con madurante (137 lotes · 1,605 ha)</button>
-    <button class="pill" onclick="setFilter('SIN',this)">Sin madurante (134 lotes · 1,605 ha)</button>
+  <!-- ============================================================
+       ETIQUETA 5 — FILTRO DE TIPO DE RIEGO
+       Cambia los textos de los botones entre comillas ""
+       El texto del título está en <div class="section-title">
+       ============================================================ -->
+  <!-- RIEGO FILTER -->
+  <div class="filter-group">
+    <div class="section-title">Tipo de riego</div>
+    <div class="filter-row" id="riego-pills">
+      <button class="pill active" data-riego="TODOS">Todos los riegos</button>
+      <button class="pill" data-riego="ASPERSION">Aspersión</button>
+      <button class="pill" data-riego="GRAVEDAD">Gravedad</button>
+      <button class="pill" data-riego="PIVOTE">Pivote</button>
+      <button class="pill" data-riego="SECANO">Secano</button>
+    </div>
   </div>
 
+  <!-- ============================================================
+       ETIQUETA 6 — FILTRO DE SEMANA DE COSECHA
+       Cambia los textos de los botones entre comillas ""
+       Para agregar/quitar semanas: copia/elimina líneas <button ...>
+       ============================================================ -->
+  <!-- SEMANA FILTER -->
+  <div class="filter-group">
+    <div class="section-title">Semana de cosecha</div>
+    <div class="filter-row" id="sem-pills">
+      <button class="pill active" data-sem="TODOS">Todas las semanas</button>
+      <button class="pill" data-sem="SEM_2">Sem 2</button>
+      <button class="pill" data-sem="SEM_3">Sem 3</button>
+      <button class="pill" data-sem="SEM_4">Sem 4</button>
+      <button class="pill" data-sem="SEM_5">Sem 5</button>
+      <button class="pill" data-sem="SEM_6">Sem 6</button>
+      <button class="pill" data-sem="SEM_7">Sem 7</button>
+      <button class="pill" data-sem="SEM_8">Sem 8</button>
+      <button class="pill" data-sem="SEM_9">Sem 9</button>
+      <button class="pill" data-sem="SEM_10">Sem 10</button>
+      <button class="pill" data-sem="SEM_11">Sem 11</button>
+      <button class="pill" data-sem="SEM_12">Sem 12</button>
+      <button class="pill" data-sem="SEM_13">Sem 13</button>
+      <button class="pill" data-sem="SEM_14">Sem 14</button>
+      <button class="pill" data-sem="SEM_15">Sem 15</button>
+      <button class="pill" data-sem="SEM_16">Sem 16</button>
+      <button class="pill" data-sem="SEM_17">Sem 17</button>
+    </div>
+  </div>
+
+  <!-- ACTIVE FILTER DISPLAY -->
+  <div class="active-filter-info" id="filter-display"></div>
+
+  <!-- WARN LOW SAMPLE -->
+  <div class="warn-box" id="warn-box">
+    ⚠️ <b>Muestra reducida:</b> El filtro actual tiene pocos lotes o hectáreas. Interpreta los resultados con cautela — pueden no ser estadísticamente representativos.
+  </div>
+
+  <!-- STATS BAR -->
+  <div class="stats-bar" id="stats-bar"></div>
+
+  <!-- ============================================================
+       ETIQUETA 7 — TÍTULO DE LA SECCIÓN DE PONDERACIÓN
+       Cambia el texto entre las etiquetas <div class="section-title">
+       ============================================================ -->
   <div class="section-title">Ponderación del índice consolidado</div>
+
+  <!-- ============================================================
+       ETIQUETA 8 — NOTA AL LADO DE LOS SLIDERS
+       Cambia el texto entre las etiquetas <span class="w-note">
+       ============================================================ -->
   <div class="weights">
     <div class="w-item">
       <label style="color:#185FA5;">TCH</label>
@@ -91,9 +203,13 @@
       <input type="range" min="0" max="100" value="25" step="5" id="w-tah" oninput="updateWeights()">
       <span class="w-val" id="v-tah">25%</span>
     </div>
-    <span class="w-note">Ajusta según la prioridad de tu zafra</span>
+    <span class="w-note">Ajustar manual</span>
   </div>
 
+  <!-- ============================================================
+       ETIQUETA 9 — LEYENDA DEL GRÁFICO (texto debajo de los sliders)
+       Cambia los textos "Índice consolidado...", "TCH norm.", etc.
+       ============================================================ -->
   <div class="legend-row">
     <span><span style="display:inline-block;width:12px;height:12px;border-radius:2px;background:#185FA5;margin-right:4px;vertical-align:middle;"></span>Índice consolidado (ponderado por HA)</span>
     <span style="border-left:1px solid #ddd;padding-left:12px;"><span style="display:inline-block;width:22px;height:2px;border-top:2px dashed #378ADD;margin-right:4px;vertical-align:middle;"></span>TCH norm.</span>
@@ -108,13 +224,21 @@
   <div class="zone-bar" id="zone-bar"></div>
 
   <div class="ha-bar-section">
-    <div class="ha-bar-label">Distribución de hectáreas cosechadas por rango (mayor segmento = más representativo estadísticamente)</div>
+    <!-- ============================================================
+         ETIQUETA 10 — DESCRIPCIÓN DE LA BARRA DE HECTÁREAS
+         Cambia el texto dentro de <div class="ha-bar-label">
+         ============================================================ -->
+    <div class="ha-bar-label">Distribución de hectáreas cosechadas por rango </div>
     <div class="ha-bar-row" id="ha-bar-row"></div>
   </div>
 
   <div class="metrics" id="metrics-row"></div>
-  <div class="insight" id="insight-box"></div>
 
+  <!-- ============================================================
+       ETIQUETA 11 — TEXTO DEL ENLACE "VER TABLA"
+       El texto cambia automáticamente al abrir/cerrar.
+       Para modificarlo busca la función toggleTable() en el JavaScript
+       ============================================================ -->
   <span class="detail-toggle" onclick="toggleTable()">▶ Ver tabla de datos detallada</span>
   <table id="detail-table">
     <thead>
@@ -136,63 +260,43 @@
     <tbody id="detail-tbody"></tbody>
   </table>
 
+  <!-- ============================================================
+       ETIQUETA 12 — NOTA DE PIE (metodología y fuente)
+       Cambia el texto de Metodología, la fuente del archivo,
+       el número de lotes, hectáreas y rango de semanas
+       ============================================================ -->
   <p class="note">
-    <strong>Metodología:</strong> Promedios ponderados por HA. Normalización Min-Max 0–1 por variable dentro del grupo.
-    Índice = suma ponderada según sliders. Óptimo = mayor índice | Subóptimo = índice ≥75% del máximo |
-    Subdosificación = bajo el óptimo con menor dosis | Sobredosificación = bajo el óptimo con mayor dosis.<br>
-    <strong>Fuente:</strong> Fertilización_-_Cosechado_sem-16.xlsx | 271 lotes | 3,210 ha | Semanas 2–17
+    <strong>Metodologia:</strong> El rango con índice mas alto = optimo |
+Cualquier rango con índice menor 75% del optimo = subóptimo |
+Los que quedan por debajo del 75% con menos dosis de N que el optimo = subdosificacion |
+Los que quedan por debajo del 75% con mayot dosis de N que el optimo = sobredosificacion
+ <br>
+    <strong>Fuente:</strong> FERTILIZANTE_DOSIS_NITROGENO.csv · 269 lotes · 3,182 ha · Semanas 1–17
   </p>
 </div>
 
 <script>
-const RAW = {
-  TODOS: {
-    ranges: ['0.5-1','1-1.5','1.5-2','2-2.5','2.5-3','3-3.5','3.5-4','4-4.5','5.5-6'],
-    n:      [2,2,8,35,80,88,39,15,2],
-    ha:     [23.27,23.70,75.77,347.38,882.06,1089.46,551.39,186.88,30.08],
-    tch:    [119.888,93.615,84.844,94.832,105.189,100.267,83.456,71.595,50.215],
-    pol:    [10.374,11.189,12.796,12.517,11.799,11.540,11.510,11.234,12.434],
-    tah:    [9.929,8.290,9.195,9.789,10.083,9.216,7.697,6.457,5.276],
-    nMean:  [0.770,1.318,1.863,2.332,2.779,3.224,3.730,4.137,5.730]
-  },
-  CON: {
-    ranges: ['1.5-2','2-2.5','2.5-3','3-3.5','3.5-4','4-4.5'],
-    n:      [1,6,33,54,27,10],
-    ha:     [5.43,64.45,381.91,673.18,366.56,113.93],
-    tch:    [118.823,119.764,107.566,97.889,84.839,72.479],
-    pol:    [13.620,12.427,12.044,11.788,12.036,11.970],
-    tah:    [13.250,12.105,10.666,9.262,8.246,7.030],
-    nMean:  [1.883,2.429,2.803,3.262,3.739,4.144]
-  },
-  SIN: {
-    ranges: ['0.5-1','1-1.5','1.5-2','2-2.5','2.5-3','3-3.5','3.5-4','4-4.5','5.5-6'],
-    n:      [2,2,7,29,47,34,12,5,2],
-    ha:     [23.27,23.70,70.34,282.93,500.15,416.28,184.83,72.95,30.08],
-    tch:    [119.888,93.615,82.221,89.152,103.375,104.112,80.713,70.214,50.215],
-    pol:    [10.374,11.189,12.733,12.537,11.612,11.140,10.466,10.085,12.434],
-    tah:    [9.929,8.290,8.882,9.261,9.638,9.141,6.607,5.562,5.276],
-    nMean:  [0.770,1.318,1.862,2.310,2.760,3.163,3.713,4.126,5.730]
-  }
-};
+const RAW_BASE = {"TODOS":{"ranges":["0.5-1","1-1.5","1.5-2","2-2.5","2.5-3","3-3.5","3.5-4","4-4.5","5.5-6"],"n":[6,3,5,24,74,80,33,10,2],"ha":[41.06,27.53,54.01,237.9,836.03,962.81,483.71,123.18,30.08],"tch":[107.314,112.073,87.632,106.934,106.067,100.357,84.054,75.177,50.215],"pol":[11.162,11.437,13.044,12.477,11.875,11.633,11.51,11.13,12.434],"tah":[9.509,10.447,9.635,10.97,10.322,9.371,7.728,6.749,5.276],"nMean":[0.708,1.33,1.866,2.365,2.773,3.21,3.733,4.137,5.73]},"CON":{"ranges":["0.5-1","1-1.5","1.5-2","2-2.5","2.5-3","3-3.5","3.5-4","4-4.5"],"n":[4,1,1,7,30,43,21,6],"ha":[17.79,3.83,5.43,65.98,360.71,509.02,298.88,64.1],"tch":[90.866,226.295,118.823,118.779,104.972,98.389,86.12,78.562],"pol":[12.193,12.97,13.62,12.418,12.161,11.94,12.156,12.033],"tah":[8.96,23.79,13.25,11.999,10.55,9.485,8.422,7.748],"nMean":[0.627,1.402,1.883,2.425,2.804,3.243,3.745,4.155]},"SIN":{"ranges":["0.5-1","1-1.5","1.5-2","2-2.5","2.5-3","3-3.5","3.5-4","4-4.5","5.5-6"],"n":[2,2,4,17,44,37,12,4,2],"ha":[23.27,23.7,48.58,171.92,475.32,453.79,184.83,59.08,30.08],"tch":[119.888,93.615,84.145,102.387,106.898,102.564,80.713,71.505,50.215],"pol":[10.374,11.189,12.979,12.5,11.657,11.289,10.466,10.149,12.434],"tah":[9.929,8.29,9.231,10.576,10.148,9.244,6.607,5.666,5.276],"nMean":[0.77,1.318,1.864,2.342,2.75,3.173,3.713,4.118,5.73]},"SEM_2":{"ranges":["2.5-3","3-3.5","3.5-4"],"n":[2,8,4],"ha":[12.91,88.19,49.78],"tch":[114.662,104.023,82.223],"pol":[8.573,9.699,9.203],"tah":[7.396,7.774,5.742],"nMean":[2.527,3.231,3.567]},"SEM_3":{"ranges":["0.5-1","2.5-3","3-3.5","3.5-4"],"n":[2,3,9,4],"ha":[17.95,38.96,110.23,52.17],"tch":[105.885,104.901,105.262,84.362],"pol":[10.309,11.011,10.975,11.908],"tah":[8.424,8.976,8.946,8.008],"nMean":[0.631,2.883,3.232,3.767]},"SEM_4":{"ranges":["2.5-3","3-3.5","3.5-4","4-4.5"],"n":[1,4,3,1],"ha":[7.24,61.54,62.5,19.37],"tch":[73.365,109.201,75.338,81.7],"pol":[10.62,10.926,10.656,11.67],"tah":[5.85,9.345,6.214,7.52],"nMean":[2.753,3.12,3.847,4.109]},"SEM_5":{"ranges":["1-1.5","2.5-3","3-3.5","3.5-4"],"n":[1,5,3,5],"ha":[17.85,80.04,32.35,55.54],"tch":[99.478,121.254,93.147,98.355],"pol":[10.93,10.064,10.058,11.682],"tah":[8.5,9.641,7.267,9.012],"nMean":[1.267,2.735,3.156,3.788]},"SEM_6":{"ranges":["2.5-3","3-3.5","3.5-4","4-4.5"],"n":[2,1,1,1],"ha":[22.44,10.41,17.01,25.31],"tch":[117.801,101.534,112.082,78.41],"pol":[10.909,11.51,11.57,10.21],"tah":[10.181,9.28,10.12,6.15],"nMean":[2.723,3.193,3.748,4.013]},"SEM_7":{"ranges":["2-2.5","2.5-3","3-3.5","3.5-4"],"n":[1,5,8,3],"ha":[4.21,44.07,121.04,37.8],"tch":[94.561,112.505,117.007,105.15],"pol":[10.74,10.354,10.647,10.658],"tah":[8.33,9.278,10.1,9.138],"nMean":[2.374,2.799,3.202,3.647]},"SEM_8":{"ranges":["2-2.5","2.5-3","3-3.5","3.5-4"],"n":[2,9,5,2],"ha":[18.14,123.69,69.55,33.52],"tch":[153.749,113.358,106.621,86.779],"pol":[10.043,11.602,11.005,11.765],"tah":[12.56,11.011,9.542,8.205],"nMean":[2.432,2.773,3.188,3.659]},"SEM_9":{"ranges":["1.5-2","2-2.5","2.5-3","3-3.5","3.5-4","4-4.5","5.5-6"],"n":[1,3,7,5,3,2,1],"ha":[5.43,45.81,66.91,20.47,34.56,20.6,19.27],"tch":[118.823,110.515,115.414,93.162,73.113,66.397,55.916],"pol":[13.62,12.31,12.352,12.732,12.76,11.427,12.15],"tah":[13.25,11.27,11.861,9.644,7.794,6.418,5.75],"nMean":[1.883,2.438,2.863,3.189,3.864,4.097,5.68]},"SEM_10":{"ranges":["2-2.5","2.5-3","3-3.5","3.5-4","4-4.5"],"n":[2,7,8,5,1],"ha":[18.23,96.55,119.4,74.82,10.37],"tch":[122.672,100.835,90.661,79.567,90.299],"pol":[13.818,12.966,13.476,12.868,12.67],"tah":[13.712,11.004,9.92,8.316,9.24],"nMean":[2.464,2.811,3.224,3.643,4.207]},"SEM_11":{"ranges":["0.5-1","2-2.5","2.5-3","3-3.5","4-4.5"],"n":[4,2,3,2,1],"ha":[23.11,13.0,41.24,21.49,10.37],"tch":[108.424,103.539,90.405,99.089,86.045],"pol":[11.825,12.496,12.384,13.077,12.89],"tah":[10.352,10.38,9.147,10.506,9.04],"nMean":[0.768,2.333,2.9,3.218,4.289]},"SEM_12":{"ranges":["1.5-2","2-2.5","2.5-3","3-3.5"],"n":[4,3,4,2],"ha":[48.58,35.0,50.96,13.73],"tch":[84.145,61.423,99.918,64.07],"pol":[12.979,12.801,12.425,12.559],"tah":[9.231,6.499,10.206,6.8],"nMean":[1.864,2.353,2.76,3.248]},"SEM_13":{"ranges":["2-2.5","2.5-3","3-3.5"],"n":[1,4,2],"ha":[11.04,39.14,9.27],"tch":[120.761,115.842,93.68],"pol":[13.81,12.363,13.403],"tah":[14.03,11.961,10.538],"nMean":[2.363,2.788,3.193]},"SEM_14":{"ranges":["2-2.5","2.5-3"],"n":[3,3],"ha":[30.11,37.15],"tch":[140.587,97.559],"pol":[12.852,12.504],"tah":[14.986,10.148],"nMean":[2.3,2.661]},"SEM_15":{"ranges":["2-2.5","2.5-3","3-3.5","3.5-4","4-4.5"],"n":[2,3,7,2,1],"ha":[11.07,30.61,92.61,46.22,11.3],"tch":[95.253,87.65,101.158,77.191,60.869],"pol":[11.371,11.825,11.837,11.383,11.59],"tah":[8.89,8.508,9.962,7.332,5.83],"nMean":[2.354,2.645,3.192,3.718,4.383]},"SEM_16":{"ranges":["1-1.5","2-2.5","2.5-3","3-3.5","3.5-4","4-4.5","5.5-6"],"n":[1,4,10,7,1,2,1],"ha":[5.85,43.5,70.9,71.82,19.79,13.16,10.81],"tch":[75.723,87.552,94.932,87.909,58.347,68.968,40.054],"pol":[11.98,12.694,12.555,12.751,12.6,12.041,12.94],"tah":[7.65,9.397,10.056,9.508,6.2,6.996,4.43],"nMean":[1.473,2.346,2.738,3.266,3.956,4.112,5.82]},"SEM_17":{"ranges":["1-1.5","2-2.5","2.5-3","3-3.5"],"n":[1,1,6,9],"ha":[3.83,7.79,73.22,120.71],"tch":[226.295,132.008,101.051,92.685],"pol":[12.97,12.47,12.929,12.466],"tah":[23.79,13.48,10.906,9.557],"nMean":[1.402,2.035,2.748,3.225]},"RIEGO_ASPERSION":{"ranges":["0.5-1","1-1.5","1.5-2","2-2.5","2.5-3","3-3.5","3.5-4","4-4.5","5.5-6"],"n":[6,3,5,22,70,66,24,8,1],"ha":[41.06,27.53,54.01,221.57,797.95,814.85,375.47,102.58,10.81],"tch":[107.314,112.073,87.632,106.519,107.183,100.804,84.304,76.94,40.054],"pol":[11.162,11.437,13.044,12.462,11.828,11.771,11.24,11.07,12.94],"tah":[9.509,10.447,9.635,10.918,10.394,9.544,7.523,6.816,4.43],"nMean":[0.708,1.33,1.866,2.371,2.77,3.209,3.727,4.145,5.82]},"RIEGO_GRAVEDAD":{"ranges":["2-2.5","2.5-3","3-3.5","3.5-4","4-4.5","5.5-6"],"n":[1,1,11,9,2,1],"ha":[11.47,17.65,108.49,108.24,20.6,19.27],"tch":[107.042,87.006,91.659,83.189,66.397,55.916],"pol":[12.56,12.53,10.99,12.445,11.427,12.15],"tah":[10.76,8.97,7.92,8.439,6.418,5.75],"nMean":[2.346,2.886,3.23,3.752,4.097,5.68]},"RIEGO_PIVOTE":{"ranges":["3-3.5"],"n":[2],"ha":[35.41],"tch":[115.4],"pol":[10.289],"tah":[9.546],"nMean":[3.154]},"RIEGO_SECANO":{"ranges":["2-2.5","2.5-3","3-3.5"],"n":[1,3,1],"ha":[4.86,20.43,4.06],"tch":[125.558,78.943,111.84],"pol":[12.99,13.135,13.02],"tah":[13.84,8.657,11.82],"nMean":[2.139,2.806,3.37]}};
+
+// State
+let selMad = 'TODOS', selRiego = 'TODOS', selSem = 'TODOS';
+let mainChart = null, tableVisible = false;
 
 const ZONE_CFG = {
+  // ============================================================
+  // ETIQUETA 13 — NOMBRES DE LAS ZONAS (aparecen en el gráfico,
+  // tabla, tooltips y barra de colores)
+  // Cambia el valor de "label" en cada zona
+  // ============================================================
   opt:    { barColor:'#185FA5', segBg:'#B5D4F4', segTxt:'#0C447C', label:'ÓPTIMO',           badge:'badge-opt', rowClass:'opt-row'   },
   subopt: { barColor:'#BA7517', segBg:'#FAC775', segTxt:'#633806', label:'Subóptimo',         badge:'badge-sub', rowClass:''          },
   under:  { barColor:'#3B6D11', segBg:'#C0DD97', segTxt:'#27500A', label:'Subdosificación',   badge:'badge-und', rowClass:'under-row' },
   over:   { barColor:'#A32D2D', segBg:'#F7C1C1', segTxt:'#501313', label:'Sobredosificación', badge:'badge-ove', rowClass:'over-row'  }
 };
 
-const INSIGHTS = {
-  TODOS: `<b>Zona óptima ponderada por HA: 2.5–3 lbs N/ton</b> (N prom.: 2.78 lbs/ton · <b>882 ha</b>, 27% del área total). Con ponderación por hectáreas, el TCH sube a <b>105.2 t/ha</b> y el TAH a <b>10.1 t/ha</b>, confirmando este rango con alta solidez estadística. El rango 3–3.5 es subóptimo (1,089 ha), con TCH de 100.3 t/ha. Sobredosificar >4 lbs/ton colapsa el TCH a 71.6 t/ha (–32%) afectando 187 ha.`,
-  CON: `<b>Con madurante — Óptimo ponderado: 2.5–3 lbs N/ton</b> (N prom.: 2.80 lbs/ton · <b>382 ha</b>). TCH ponderado de <b>107.6 t/ha</b> y TAH de <b>10.7 t/ha</b>. El rango 2–2.5 aparece alto pero representa solo 64 ha (poca solidez). El rango 3–3.5 es subóptimo con 673 ha. Evitar >3.5 lbs/ton con madurante.`,
-  SIN: `<b>Sin madurante — Óptimo ponderado: 3–3.5 lbs N/ton</b> (N prom.: 3.16 lbs/ton · <b>416 ha</b>). Sin madurante la caña requiere algo más de nitrógeno. El rango 2.5–3 es subóptimo muy cercano (500 ha, TCH 103.4 t/ha). Ambos rangos son válidos. Por encima de 4 lbs/ton el rendimiento cae con 73 ha afectadas.`
-};
-
-let currentFilter = 'TODOS', mainChart = null, tableVisible = false;
-
 function normalize(arr) {
   const mn = Math.min(...arr), mx = Math.max(...arr);
-  if (mx === mn) return arr.map(() => 0);
+  if (mx === mn) return arr.map(() => 0.5);
   return arr.map(v => (v - mn) / (mx - mn));
 }
 
@@ -215,8 +319,75 @@ function classifyZones(ranges, composite, nMean) {
   });
 }
 
+// Get current dataset key by intersecting filters
+function getDataKey() {
+  // We need to intersect filters. We have precomputed: TODOS, CON, SIN, SEM_*, RIEGO_*
+  // If only one non-TODOS filter is active, use that key directly.
+  // If multiple, we need to compute on the fly from raw rows — but we don't have them in JS.
+  // Strategy: prioritize SEM > RIEGO > MAD, warn user when combining.
+  // For simplicity, we filter by: SEM first, then RIEGO, then MAD — using precomputed keys.
+  // When multiple active: show best available single-key data + badge.
+
+  if (selSem !== 'TODOS') return selSem;
+  if (selRiego !== 'TODOS') return 'RIEGO_' + selRiego;
+  if (selMad !== 'TODOS') return selMad;
+  return 'TODOS';
+}
+
+function getFilterLabel() {
+  const parts = [];
+  if (selMad !== 'TODOS') {
+    const labels = {CON:'Con madurante', SIN:'Sin madurante'};
+    parts.push({cls:'ft-mad', txt: labels[selMad]});
+  }
+  if (selRiego !== 'TODOS') {
+    const labels = {ASPERSION:'Aspersión', GRAVEDAD:'Gravedad', PIVOTE:'Pivote', SECANO:'Secano'};
+    parts.push({cls:'ft-riego', txt: labels[selRiego]});
+  }
+  if (selSem !== 'TODOS') {
+    const num = selSem.replace('SEM_','');
+    parts.push({cls:'ft-sem', txt: 'Semana ' + num});
+  }
+  if (parts.length === 0) return '<span>Mostrando: <b>Todos los lotes</b></span>';
+
+  const multiWarn = parts.length > 1
+    ? ' <span style="color:#854F0B;font-size:11px;">⚠ Múltiples filtros: se aplica prioridad Semana > Riego > Madurante</span>'
+    : '';
+  return 'Filtros activos: ' + parts.map(p=>`<span class="filter-tag ${p.cls}">${p.txt}</span>`).join(' ') + multiWarn;
+}
+
 function render() {
-  const d = RAW[currentFilter];
+  const key = getDataKey();
+  const d = RAW_BASE[key];
+
+  if (!d || d.ranges.length < 2) {
+    document.getElementById('warn-box').className = 'warn-box show';
+    document.getElementById('warn-box').innerHTML = '⚠️ <b>Datos insuficientes:</b> El filtro actual no tiene suficientes rangos de dosis para calcular un índice comparativo. Selecciona un filtro con más lotes.';
+    // Still try to render with whatever we have
+    if (!d || d.ranges.length === 0) return;
+  } else {
+    document.getElementById('warn-box').className = 'warn-box';
+  }
+
+  // Warn on low sample
+  const totalLotes = d.n.reduce((a,b)=>a+b,0);
+  const totalHA = d.ha.reduce((a,b)=>a+b,0);
+  if (totalLotes < 15 || totalHA < 100) {
+    document.getElementById('warn-box').className = 'warn-box show';
+    document.getElementById('warn-box').innerHTML = `⚠️ <b>Muestra reducida:</b> El filtro actual tiene solo <b>${totalLotes} lotes</b> y <b>${totalHA.toFixed(0)} ha</b>. Interpreta los resultados con cautela.`;
+  }
+
+  // Stats bar
+  document.getElementById('stats-bar').innerHTML =
+    `<span>Lotes: <b>${totalLotes}</b></span>` +
+    `<span>Hectáreas: <b>${totalHA.toFixed(0)} ha</b></span>` +
+    `<span>Rangos de dosis: <b>${d.ranges.length}</b></span>` +
+    `<span>N mínimo: <b>${Math.min(...d.nMean).toFixed(2)} lbs/ton</b></span>` +
+    `<span>N máximo: <b>${Math.max(...d.nMean).toFixed(2)} lbs/ton</b></span>`;
+
+  // Filter display
+  document.getElementById('filter-display').innerHTML = getFilterLabel();
+
   const [wt, wp, wa] = getWeights();
   const tchN = normalize(d.tch);
   const polN = normalize(d.pol);
@@ -251,6 +422,12 @@ function render() {
           callbacks: {
             afterBody: (items) => {
               const i = items[0].dataIndex;
+              // ============================================================
+              // ETIQUETA 14 — TEXTOS DEL TOOLTIP (ventana emergente al pasar
+              // el cursor sobre las barras del gráfico)
+              // Cambia las etiquetas entre comillas simples ''
+              // Los ${...} son valores calculados automáticamente, no los borres
+              // ============================================================
               return ['──────────────────',
                 `Zona: ${ZONE_CFG[zones[i]].label}`,
                 `N prom. pond.: ${d.nMean[i].toFixed(2)} lbs/ton`,
@@ -264,6 +441,11 @@ function render() {
         }
       },
       scales: {
+        // ============================================================
+        // ETIQUETA 15 — TÍTULOS DE LOS EJES DEL GRÁFICO
+        // Eje X: cambia el valor de text: bajo "title" del eje x
+        // Eje Y: cambia el valor de text: bajo "title" del eje y
+        // ============================================================
         x: { ticks:{font:{size:12}}, grid:{display:false},
              title:{display:true, text:'Rango de dosis (lbs Nitrógeno / tonelada de caña)', font:{size:12}, color:'#555'} },
         y: { min:0, max:1.08,
@@ -273,7 +455,7 @@ function render() {
     }
   });
 
-  const totalHa = d.ha.reduce((a,b)=>a+b,0);
+  const totalHaSum = d.ha.reduce((a,b)=>a+b,0);
 
   document.getElementById('zone-bar').innerHTML = d.ranges.map((r,i) => {
     const c = ZONE_CFG[zones[i]];
@@ -281,7 +463,7 @@ function render() {
   }).join('');
 
   document.getElementById('ha-bar-row').innerHTML = d.ranges.map((r,i) => {
-    const pct = (d.ha[i]/totalHa*100).toFixed(1);
+    const pct = (d.ha[i]/totalHaSum*100).toFixed(1);
     return `<div class="ha-seg" style="flex:${d.ha[i]};background:${ZONE_CFG[zones[i]].barColor};" title="${r}: ${d.ha[i].toFixed(0)} ha (${pct}%)">${pct}%</div>`;
   }).join('');
 
@@ -289,6 +471,11 @@ function render() {
   const overIdxes = zones.map((z,i)=>z==='over'?i:-1).filter(i=>i>=0);
   const pctLoss = overIdxes.length ? ((composite[optIdx]-composite[overIdxes[0]])/composite[optIdx]*100).toFixed(1) : null;
 
+  // ============================================================
+  // ETIQUETA 16 — TARJETAS DE MÉTRICAS (4 cuadros de resumen)
+  // Cambia los textos entre comillas de mc-label y mc-sub
+  // Los ${...} son valores calculados, no los borres
+  // ============================================================
   document.getElementById('metrics-row').innerHTML = `
     <div class="mc"><div class="mc-label">Rango óptimo</div>
       <div class="mc-val">${d.ranges[optIdx]}</div>
@@ -298,13 +485,9 @@ function render() {
       <div class="mc-sub">lbs N/ton (ponderado por HA)</div></div>
     <div class="mc"><div class="mc-label">Hectáreas en óptimo</div>
       <div class="mc-val">${d.ha[optIdx].toFixed(0)}</div>
-      <div class="mc-sub">${(d.ha[optIdx]/totalHa*100).toFixed(1)}% del área total del grupo</div></div>
-    <div class="mc"><div class="mc-label">Pérdida sobredosif.</div>
-      <div class="mc-val">${pctLoss ? '-'+pctLoss+'%' : '—'}</div>
-      <div class="mc-sub">caída del índice vs óptimo</div></div>
-  `;
+      <div class="mc-sub">${(d.ha[optIdx]/totalHaSum*100).toFixed(1)}% del área del grupo</div></div>
 
-  document.getElementById('insight-box').innerHTML = INSIGHTS[currentFilter];
+  `;
 
   document.getElementById('detail-tbody').innerHTML = d.ranges.map((r,i) => {
     const z = zones[i];
@@ -318,12 +501,33 @@ function render() {
   }).join('');
 }
 
-function setFilter(f, btn) {
-  currentFilter = f;
-  document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+// PILL HANDLERS
+document.getElementById('mad-pills').addEventListener('click', e => {
+  const btn = e.target.closest('[data-mad]');
+  if (!btn) return;
+  selMad = btn.dataset.mad;
+  document.querySelectorAll('[data-mad]').forEach(p => p.classList.remove('active'));
   btn.classList.add('active');
   render();
-}
+});
+
+document.getElementById('riego-pills').addEventListener('click', e => {
+  const btn = e.target.closest('[data-riego]');
+  if (!btn) return;
+  selRiego = btn.dataset.riego;
+  document.querySelectorAll('[data-riego]').forEach(p => { p.classList.remove('active'); p.classList.remove('active-riego'); });
+  btn.classList.add(selRiego === 'TODOS' ? 'active' : 'active-riego');
+  render();
+});
+
+document.getElementById('sem-pills').addEventListener('click', e => {
+  const btn = e.target.closest('[data-sem]');
+  if (!btn) return;
+  selSem = btn.dataset.sem;
+  document.querySelectorAll('[data-sem]').forEach(p => { p.classList.remove('active'); p.classList.remove('active-sem'); });
+  btn.classList.add(selSem === 'TODOS' ? 'active' : 'active-sem');
+  render();
+});
 
 function updateWeights() {
   const wt = parseInt(document.getElementById('w-tch').value);
@@ -339,7 +543,7 @@ function updateWeights() {
 function toggleTable() {
   tableVisible = !tableVisible;
   document.getElementById('detail-table').style.display = tableVisible ? 'table' : 'none';
-  document.querySelector('.detail-toggle').textContent = (tableVisible ? '▼' : '▶') + ' Ver tabla de datos detallada';
+  document.querySelector('.detail-toggle').textContent = (tableVisible ? '▼' : '▶') + 'Tabla de datos detallada';
 }
 
 render();
