@@ -1,552 +1,983 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<!-- ============================================================
-     ETIQUETA 1 — TÍTULO DE LA PESTAÑA DEL NAVEGADOR
-     Cambia el texto entre <title> y </title>
-     ============================================================ -->
-<title>Análisis de Fertilización — Dosis Óptima de Nitrógeno</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Registro Agrícola - Chumbagua</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: Arial, sans-serif; background: #f4f6f9; color: #222; padding: 24px; }
-  .container { max-width: 980px; margin: 0 auto; background: #fff; border-radius: 12px; padding: 28px 32px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
-  h1 { font-size: 20px; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
-  .subtitle { font-size: 13px; color: #666; margin-bottom: 20px; line-height: 1.5; }
-  .section-title { font-size: 12px; font-weight: 700; color: #444; margin: 16px 0 7px; text-transform: uppercase; letter-spacing: 0.5px; }
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f4f6f4;min-height:100vh}
+.app{max-width:480px;margin:0 auto;padding:0 0 3rem}
 
-  /* FILTER GROUPS */
-  .filter-group { margin-bottom: 14px; }
-  .filter-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-  .pill { font-size: 12px; padding: 5px 13px; border-radius: 20px; border: 1px solid #ccc; background: #fff; color: #555; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
-  .pill:hover { border-color: #185FA5; color: #185FA5; }
-  .pill.active { background: #185FA5; color: #fff; border-color: #185FA5; }
-  .pill.active-riego { background: #3B6D11; color: #fff; border-color: #3B6D11; }
-  .pill.active-sem { background: #854F0B; color: #fff; border-color: #854F0B; }
+/* LOGIN */
+.login-screen{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem;background:#f4f6f4}
+.login-logo{width:64px;height:64px;background:#1D9E75;border-radius:16px;display:flex;align-items:center;justify-content:center;margin-bottom:1.5rem}
+.login-logo svg{width:36px;height:36px;fill:white}
+.login-card{background:white;border-radius:16px;padding:2rem;width:100%;max-width:360px;box-shadow:0 4px 20px rgba(0,0,0,0.08)}
+.login-card h2{font-size:20px;font-weight:700;color:#111827;margin-bottom:4px}
+.login-card p{font-size:13px;color:#6b7280;margin-bottom:1.5rem}
+.login-field{margin-bottom:14px}
+.login-field label{display:block;font-size:13px;font-weight:500;color:#374151;margin-bottom:5px}
+.login-field input{width:100%;padding:11px 14px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:15px;color:#111827;background:#fafafa}
+.login-field input:focus{outline:none;border-color:#1D9E75;background:white}
+.login-btn{width:100%;padding:13px;background:#1D9E75;color:white;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;margin-top:4px}
+.login-btn:active{background:#0F6E56}
+.login-btn:disabled{background:#9ca3af;cursor:not-allowed}
+.login-error{background:#FEE2E2;color:#B91C1C;padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:12px;display:none}
+.login-loading{text-align:center;color:#6b7280;font-size:13px;padding:8px;display:none}
 
-  /* ACTIVE FILTER BADGE */
-  .active-filter-info { font-size: 12px; color: #666; background: #f0f4fa; border-radius: 6px; padding: 6px 12px; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-  .active-filter-info b { color: #1a1a2e; }
-  .filter-tag { display: inline-flex; align-items: center; gap: 5px; background: #fff; border: 1px solid #ccc; border-radius: 12px; padding: 2px 10px; font-size: 11px; }
-  .filter-tag.ft-mad  { border-color: #185FA5; color: #185FA5; }
-  .filter-tag.ft-riego{ border-color: #3B6D11; color: #3B6D11; }
-  .filter-tag.ft-sem  { border-color: #854F0B; color: #854F0B; }
+/* HEADER */
+.header{background:#1D9E75;padding:1rem 1.25rem}
+.header-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:2px}
+.header h1{font-size:16px;font-weight:600;color:white}
+.header-user{font-size:12px;color:rgba(255,255,255,0.85)}
+.header-rol{font-size:10px;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:0.05em}
+.header-fecha{font-size:11px;color:rgba(255,255,255,0.75);margin-top:2px}
+.logout-btn{background:rgba(255,255,255,0.2);border:none;color:white;padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer}
 
-  /* WEIGHTS */
-  .weights { display: flex; gap: 20px; flex-wrap: wrap; align-items: center; background: #f0f4fa; border-radius: 8px; padding: 12px 16px; margin-bottom: 14px; }
-  .w-item { display: flex; align-items: center; gap: 8px; font-size: 13px; }
-  .w-item label { font-weight: 700; min-width: 32px; }
-  .w-item input[type=range] { width: 110px; accent-color: #185FA5; cursor: pointer; }
-  .w-val { font-size: 13px; font-weight: 700; min-width: 36px; color: #185FA5; }
-  .w-note { font-size: 11px; color: #888; margin-left: auto; font-style: italic; }
+/* TABS */
+.tabs{display:flex;background:white;border-bottom:1px solid #e5e7eb;position:sticky;top:0;z-index:10}
+.tab{flex:1;padding:11px 4px;font-size:11px;font-weight:500;border:none;background:none;color:#6b7280;cursor:pointer;border-bottom:2px solid transparent}
+.tab.active{color:#1D9E75;border-bottom-color:#1D9E75}
 
-  .legend-row { display: flex; gap: 18px; flex-wrap: wrap; font-size: 12px; color: #555; margin-bottom: 10px; align-items: center; }
-  .chart-wrapper { position: relative; width: 100%; height: 320px; margin-bottom: 6px; }
-  .zone-bar { display: flex; border-radius: 6px; overflow: hidden; margin: 6px 0 4px; font-size: 11px; }
-  .zone-seg { flex: 1; padding: 5px 2px; text-align: center; font-weight: 700; cursor: default; }
-  .ha-bar-section { margin: 4px 0 18px; }
-  .ha-bar-label { font-size: 11px; color: #888; margin-bottom: 3px; }
-  .ha-bar-row { display: flex; height: 16px; border-radius: 4px; overflow: hidden; }
-  .ha-seg { display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; color: #fff; overflow: hidden; white-space: nowrap; }
+/* SECTIONS */
+.sec{display:none;padding:1rem;gap:1rem;flex-direction:column}
+.sec.active{display:flex}
 
-  .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
-  .mc { background: #f4f6f9; border-radius: 8px; padding: 12px 14px; }
-  .mc-label { font-size: 11px; color: #777; margin-bottom: 4px; }
-  .mc-val { font-size: 21px; font-weight: 700; color: #1a1a2e; }
-  .mc-sub { font-size: 10px; color: #999; margin-top: 3px; line-height: 1.4; }
+/* CARDS */
+.card{background:white;border-radius:12px;padding:1rem 1.25rem;box-shadow:0 1px 3px rgba(0,0,0,0.06)}
+.card-title{font-size:11px;font-weight:600;color:#9ca3af;margin-bottom:12px;text-transform:uppercase;letter-spacing:0.06em}
 
-  /* WARN for low sample */
-  .warn-box { background: #fff8e6; border: 1px solid #f5c518; border-radius: 8px; padding: 9px 14px; font-size: 12px; color: #6b4f00; margin-bottom: 14px; display: none; }
-  .warn-box.show { display: block; }
+/* FORM */
+label{display:block;font-size:13px;color:#374151;margin-bottom:4px;font-weight:500}
+input,select,textarea{width:100%;font-size:15px;padding:9px 12px;border:1.5px solid #e5e7eb;border-radius:8px;background:#fafafa;color:#111827;transition:border-color 0.15s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#1D9E75;background:white}
+textarea{height:65px;resize:none}
+.field{margin-bottom:13px}
+.field:last-child{margin-bottom:0}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:13px}
+.field-row .field{margin-bottom:0}
 
-  .detail-toggle { font-size: 13px; color: #185FA5; cursor: pointer; text-decoration: underline; margin-bottom: 8px; display: inline-block; user-select: none; }
-  #detail-table { display: none; width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
-  #detail-table th { background: #1a1a2e; color: #fff; padding: 7px 10px; text-align: left; white-space: nowrap; }
-  #detail-table td { padding: 6px 10px; border-bottom: 1px solid #eee; white-space: nowrap; }
-  #detail-table tr:nth-child(even) td { background: #f8f9fb; }
-  #detail-table tr.opt-row td { background: #dbeeff; font-weight: 700; }
-  #detail-table tr.over-row td { background: #fff0f0; }
-  #detail-table tr.under-row td { background: #edf7e3; }
-  .note { font-size: 11px; color: #999; margin-top: 16px; line-height: 1.6; border-top: 1px solid #eee; padding-top: 12px; }
-  .badge { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 20px; font-weight: 700; }
-  .badge-opt { background: #dbeeff; color: #0C447C; }
-  .badge-sub { background: #fff3d6; color: #633806; }
-  .badge-und { background: #e6f4d8; color: #27500A; }
-  .badge-ove { background: #ffe0e0; color: #501313; }
+/* ACTIVIDAD */
+.act-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.act-btn{padding:9px 6px;font-size:12px;font-weight:500;border:1.5px solid #e5e7eb;border-radius:8px;background:#f9fafb;color:#6b7280;cursor:pointer;text-align:center;line-height:1.3;transition:all 0.15s}
+.act-btn.sel{background:#E1F5EE;color:#0F6E56;border-color:#1D9E75}
 
-  /* STATS BAR */
-  .stats-bar { display: flex; gap: 18px; font-size: 12px; color: #666; margin-bottom: 14px; padding: 8px 14px; background: #f8f9fb; border-radius: 8px; flex-wrap: wrap; }
-  .stats-bar span b { color: #1a1a2e; }
+/* COUNTER */
+.counter{display:flex;align-items:center;gap:8px;margin-top:4px}
+.cbtn{width:32px;height:32px;border:1.5px solid #e5e7eb;border-radius:8px;background:#f9fafb;color:#374151;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.cval{font-size:20px;font-weight:600;min-width:28px;text-align:center}
 
-  @media (max-width: 640px) {
-    .metrics { grid-template-columns: repeat(2, 1fr); }
-    .container { padding: 18px 16px; }
-  }
+/* CHECKBOX */
+.check-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#f9fafb;border:1.5px solid #e5e7eb;border-radius:8px;cursor:pointer;margin-top:4px}
+.check-row.checked{background:#E1F5EE;border-color:#1D9E75}
+.check-row input{width:18px;height:18px;margin:0;flex-shrink:0}
+.check-row label{margin:0;cursor:pointer;font-size:13px;color:#374151;flex:1}
+
+/* HORA */
+.hora-badge{display:inline-flex;align-items:center;gap:5px;background:#EFF6FF;color:#1D4ED8;padding:5px 10px;border-radius:8px;font-size:12px;font-weight:500;margin-bottom:13px}
+
+/* BUTTON */
+.btn-guardar{width:100%;padding:13px;background:#1D9E75;color:white;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer}
+.btn-guardar:disabled{background:#9ca3af;cursor:not-allowed}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:#111827;color:white;padding:11px 20px;border-radius:10px;font-size:13px;font-weight:500;transition:transform 0.3s;z-index:999;max-width:90vw;text-align:center}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.error{background:#B91C1C}
+.toast.success{background:#0F6E56}
+
+/* INFO LOTE */
+.info-lote{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:10px 12px;margin-top:8px;display:none}
+.info-lote.show{display:block}
+.info-lote-title{font-size:12px;color:#166534;font-weight:600;margin-bottom:4px}
+.info-lote-row{display:flex;justify-content:space-between;font-size:12px;color:#166534;margin-bottom:2px}
+.info-lote-warn{background:#FEF3C7;color:#92400E;padding:6px 10px;border-radius:6px;font-size:11px;margin-top:6px;display:none}
+
+/* HISTORIAL */
+.reg-item{background:white;border-radius:12px;padding:0.9rem 1.1rem;box-shadow:0 1px 3px rgba(0,0,0,0.06)}
+.reg-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.badge{font-size:11px;font-weight:600;background:#E1F5EE;color:#0F6E56;padding:3px 9px;border-radius:20px}
+.badge.fp{background:#FEE2E2;color:#B91C1C}
+.reg-fecha{font-size:11px;color:#9ca3af}
+.reg-finca{font-size:14px;font-weight:600;color:#111827;margin-bottom:2px}
+.reg-meta{font-size:12px;color:#6b7280}
+
+/* RESUMEN */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat{background:white;border-radius:10px;padding:0.9rem 1rem;box-shadow:0 1px 3px rgba(0,0,0,0.06)}
+.stat-lbl{font-size:11px;color:#9ca3af;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px}
+.stat-val{font-size:24px;font-weight:700;color:#111827}
+.empty{text-align:center;padding:2.5rem 1rem;color:#9ca3af;font-size:14px}
+
+/* FERTIRRIEGO TURNOS */
+.turno-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-top:6px}
+.turno-btn{padding:10px 4px;font-size:13px;font-weight:600;border:1.5px solid #e5e7eb;border-radius:8px;background:#f9fafb;color:#6b7280;cursor:pointer;text-align:center}
+.turno-btn.sel{background:#1D9E75;color:white;border-color:#1D9E75}
+.turno-btn.done{background:#E1F5EE;color:#0F6E56;border-color:#bbf7d0;cursor:not-allowed}
 </style>
 </head>
 <body>
-<div class="container">
 
-  <!-- ============================================================
-       ETIQUETA 2 — TÍTULO PRINCIPAL (grande, arriba de todo)
-       Cambia el texto entre <h1> y </h1>
-       ============================================================ -->
-  <h1>Análisis de Fertilización — Dosis Óptima de Nitrógeno</h1>
-
-  <!-- ============================================================
-       ETIQUETA 3 — SUBTÍTULO (línea descriptiva bajo el título)
-       Puedes cambiar ambas líneas de texto aquí
-       ============================================================ -->
-  <p class="subtitle">
-    Índice consolidado TCH · POL · TAH | Promedios ponderados por hectáreas cosechadas<br>
-    <span style="color:#185FA5;font-weight:600;">Estadística Agrícola</span>
-  </p>
-
-  <!-- ============================================================
-       ETIQUETA 4 — FILTRO DE MADURANTE
-       Cambia los textos de los botones entre comillas ""
-       Ejemplo: "Todos" → "Sin filtro" | "Con madurante" → "Con producto"
-       ============================================================ -->
-  <!-- MADURANTE FILTER -->
-  <div class="filter-group">
-    <div class="section-title">Madurante</div>
-    <div class="filter-row" id="mad-pills">
-      <button class="pill active" data-mad="TODOS">Todos</button>
-      <button class="pill" data-mad="CON">Con madurante</button>
-      <button class="pill" data-mad="SIN">Sin madurante</button>
+<!-- LOGIN -->
+<div id="loginScreen" class="login-screen">
+  <div class="login-logo">
+    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
+  </div>
+  <div class="login-card">
+    <h2>Registro Agrícola</h2>
+    <p>Ingresa con tu correo corporativo</p>
+    <div id="loginError" class="login-error"></div>
+    <div id="loginLoading" class="login-loading">Verificando...</div>
+    <div class="login-field">
+      <label>Email</label>
+      <input type="email" id="inputEmail" placeholder="usuario@chumbagua.com" autocomplete="username"/>
     </div>
-  </div>
-
-  <!-- ============================================================
-       ETIQUETA 5 — FILTRO DE TIPO DE RIEGO
-       Cambia los textos de los botones entre comillas ""
-       El texto del título está en <div class="section-title">
-       ============================================================ -->
-  <!-- RIEGO FILTER -->
-  <div class="filter-group">
-    <div class="section-title">Tipo de riego</div>
-    <div class="filter-row" id="riego-pills">
-      <button class="pill active" data-riego="TODOS">Todos los riegos</button>
-      <button class="pill" data-riego="ASPERSION">Aspersión</button>
-      <button class="pill" data-riego="GRAVEDAD">Gravedad</button>
-      <button class="pill" data-riego="PIVOTE">Pivote</button>
-      <button class="pill" data-riego="SECANO">Secano</button>
+    <div class="login-field">
+      <label>Contraseña</label>
+      <input type="password" id="inputPass" placeholder="Tu contraseña" autocomplete="current-password"/>
     </div>
+    <button class="login-btn" id="btnLogin" onclick="login()">Ingresar</button>
   </div>
-
-  <!-- ============================================================
-       ETIQUETA 6 — FILTRO DE SEMANA DE COSECHA
-       Cambia los textos de los botones entre comillas ""
-       Para agregar/quitar semanas: copia/elimina líneas <button ...>
-       ============================================================ -->
-  <!-- SEMANA FILTER -->
-  <div class="filter-group">
-    <div class="section-title">Semana de cosecha</div>
-    <div class="filter-row" id="sem-pills">
-      <button class="pill active" data-sem="TODOS">Todas las semanas</button>
-      <button class="pill" data-sem="SEM_2">Sem 2</button>
-      <button class="pill" data-sem="SEM_3">Sem 3</button>
-      <button class="pill" data-sem="SEM_4">Sem 4</button>
-      <button class="pill" data-sem="SEM_5">Sem 5</button>
-      <button class="pill" data-sem="SEM_6">Sem 6</button>
-      <button class="pill" data-sem="SEM_7">Sem 7</button>
-      <button class="pill" data-sem="SEM_8">Sem 8</button>
-      <button class="pill" data-sem="SEM_9">Sem 9</button>
-      <button class="pill" data-sem="SEM_10">Sem 10</button>
-      <button class="pill" data-sem="SEM_11">Sem 11</button>
-      <button class="pill" data-sem="SEM_12">Sem 12</button>
-      <button class="pill" data-sem="SEM_13">Sem 13</button>
-      <button class="pill" data-sem="SEM_14">Sem 14</button>
-      <button class="pill" data-sem="SEM_15">Sem 15</button>
-      <button class="pill" data-sem="SEM_16">Sem 16</button>
-      <button class="pill" data-sem="SEM_17">Sem 17</button>
-    </div>
-  </div>
-
-  <!-- ACTIVE FILTER DISPLAY -->
-  <div class="active-filter-info" id="filter-display"></div>
-
-  <!-- WARN LOW SAMPLE -->
-  <div class="warn-box" id="warn-box">
-    ⚠️ <b>Muestra reducida:</b> El filtro actual tiene pocos lotes o hectáreas. Interpreta los resultados con cautela — pueden no ser estadísticamente representativos.
-  </div>
-
-  <!-- STATS BAR -->
-  <div class="stats-bar" id="stats-bar"></div>
-
-  <!-- ============================================================
-       ETIQUETA 7 — TÍTULO DE LA SECCIÓN DE PONDERACIÓN
-       Cambia el texto entre las etiquetas <div class="section-title">
-       ============================================================ -->
-  <div class="section-title">Ponderación del índice consolidado</div>
-
-  <!-- ============================================================
-       ETIQUETA 8 — NOTA AL LADO DE LOS SLIDERS
-       Cambia el texto entre las etiquetas <span class="w-note">
-       ============================================================ -->
-  <div class="weights">
-    <div class="w-item">
-      <label style="color:#185FA5;">TCH</label>
-      <input type="range" min="0" max="100" value="50" step="5" id="w-tch" oninput="updateWeights()">
-      <span class="w-val" id="v-tch">50%</span>
-    </div>
-    <div class="w-item">
-      <label style="color:#3B6D11;">POL</label>
-      <input type="range" min="0" max="100" value="25" step="5" id="w-pol" oninput="updateWeights()">
-      <span class="w-val" id="v-pol">25%</span>
-    </div>
-    <div class="w-item">
-      <label style="color:#854F0B;">TAH</label>
-      <input type="range" min="0" max="100" value="25" step="5" id="w-tah" oninput="updateWeights()">
-      <span class="w-val" id="v-tah">25%</span>
-    </div>
-    <span class="w-note">Ajustar manual</span>
-  </div>
-
-  <!-- ============================================================
-       ETIQUETA 9 — LEYENDA DEL GRÁFICO (texto debajo de los sliders)
-       Cambia los textos "Índice consolidado...", "TCH norm.", etc.
-       ============================================================ -->
-  <div class="legend-row">
-    <span><span style="display:inline-block;width:12px;height:12px;border-radius:2px;background:#185FA5;margin-right:4px;vertical-align:middle;"></span>Índice consolidado (ponderado por HA)</span>
-    <span style="border-left:1px solid #ddd;padding-left:12px;"><span style="display:inline-block;width:22px;height:2px;border-top:2px dashed #378ADD;margin-right:4px;vertical-align:middle;"></span>TCH norm.</span>
-    <span><span style="display:inline-block;width:22px;height:2px;border-top:2px dashed #639922;margin-right:4px;vertical-align:middle;"></span>POL norm.</span>
-    <span><span style="display:inline-block;width:22px;height:2px;border-top:2px dashed #BA7517;margin-right:4px;vertical-align:middle;"></span>TAH norm.</span>
-  </div>
-
-  <div class="chart-wrapper">
-    <canvas id="main-chart"></canvas>
-  </div>
-
-  <div class="zone-bar" id="zone-bar"></div>
-
-  <div class="ha-bar-section">
-    <!-- ============================================================
-         ETIQUETA 10 — DESCRIPCIÓN DE LA BARRA DE HECTÁREAS
-         Cambia el texto dentro de <div class="ha-bar-label">
-         ============================================================ -->
-    <div class="ha-bar-label">Distribución de hectáreas cosechadas por rango </div>
-    <div class="ha-bar-row" id="ha-bar-row"></div>
-  </div>
-
-  <div class="metrics" id="metrics-row"></div>
-
-  <!-- ============================================================
-       ETIQUETA 11 — TEXTO DEL ENLACE "VER TABLA"
-       El texto cambia automáticamente al abrir/cerrar.
-       Para modificarlo busca la función toggleTable() en el JavaScript
-       ============================================================ -->
-  <span class="detail-toggle" onclick="toggleTable()">▶ Ver tabla de datos detallada</span>
-  <table id="detail-table">
-    <thead>
-      <tr>
-        <th>Rango (lbs N/ton)</th>
-        <th>N prom. pond.</th>
-        <th>Lotes</th>
-        <th>Total HA</th>
-        <th>TCH pond. (t/ha)</th>
-        <th>POL pond. (%)</th>
-        <th>TAH pond. (t/ha)</th>
-        <th>TCH norm.</th>
-        <th>POL norm.</th>
-        <th>TAH norm.</th>
-        <th>Índice /100</th>
-        <th>Zona</th>
-      </tr>
-    </thead>
-    <tbody id="detail-tbody"></tbody>
-  </table>
-
-  <!-- ============================================================
-       ETIQUETA 12 — NOTA DE PIE (metodología y fuente)
-       Cambia el texto de Metodología, la fuente del archivo,
-       el número de lotes, hectáreas y rango de semanas
-       ============================================================ -->
-  <p class="note">
-    <strong>Metodologia:</strong> El rango con índice mas alto = optimo |
-Cualquier rango con índice menor 75% del optimo = subóptimo |
-Los que quedan por debajo del 75% con menos dosis de N que el optimo = subdosificacion |
-Los que quedan por debajo del 75% con mayot dosis de N que el optimo = sobredosificacion
- <br>
-    <strong>Fuente:</strong> FERTILIZANTE_DOSIS_NITROGENO.csv · 269 lotes · 3,182 ha · Semanas 1–17
-  </p>
 </div>
 
+<!-- APP PRINCIPAL -->
+<div id="mainApp" style="display:none">
+  <div class="app">
+    <div class="header">
+      <div class="header-top">
+        <div>
+          <h1>Registro agrícola</h1>
+          <div class="header-user" id="headerUser"></div>
+          <div class="header-rol" id="headerRol"></div>
+        </div>
+        <button class="logout-btn" onclick="logout()">Salir</button>
+      </div>
+      <div class="header-fecha" id="headerFecha"></div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" onclick="setTab('nuevo')">Nuevo registro</button>
+      <button class="tab" onclick="setTab('historial')">Historial</button>
+      <button class="tab" onclick="setTab('resumen')">Resumen</button>
+    </div>
+
+    <!-- NUEVO REGISTRO -->
+    <div class="sec active" id="sec-nuevo">
+
+      <!-- SELECTOR ACTIVIDAD -->
+      <div class="card" id="cardActividad">
+        <div class="card-title">Actividad</div>
+        <div class="act-grid" id="actGrid">
+          <!-- Se llenan dinámicamente según permisos -->
+        </div>
+      </div>
+
+      <!-- UBICACION -->
+      <div class="card" id="cardUbicacion" style="display:none">
+        <div class="card-title">Ubicación</div>
+        <div class="field" id="fieldFinca">
+          <label>Finca</label>
+          <select id="selFinca" onchange="onFinca()">
+            <option value="">Seleccionar finca...</option>
+          </select>
+        </div>
+        <div class="field" id="fieldLote">
+          <label>Lote</label>
+          <select id="selLote" onchange="onLote()" disabled>
+            <option value="">Primero selecciona una finca</option>
+          </select>
+        </div>
+        <div id="infoLote" class="info-lote">
+          <div class="info-lote-title">Información del lote</div>
+          <div class="info-lote-row"><span>Área total:</span><span id="infoArea"></span></div>
+          <div class="info-lote-row"><span>Variedad:</span><span id="infoVar"></span></div>
+          <div class="info-lote-row"><span>Avance acumulado:</span><span id="infoAcum"></span></div>
+          <div class="info-lote-warn" id="infoWarn">⚠️ Este lote ya alcanzó el área total</div>
+        </div>
+      </div>
+
+      <!-- CAMPOS COMUNES -->
+      <div class="card" id="cardCampos" style="display:none">
+        <div class="card-title">Datos del avance</div>
+
+        <div class="field">
+          <label>Fecha</label>
+          <input type="date" id="inFecha"/>
+        </div>
+
+        <div class="field">
+          <label>Hectáreas avanzadas (ha)</label>
+          <input type="number" step="0.01" id="inHa" placeholder="0.00"/>
+        </div>
+
+        <!-- CAMPOS DETALLE: SIEMBRA -->
+        <div class="field detalle-siembra" style="display:none">
+          <label>Personal al día</label>
+          <div class="counter">
+            <button class="cbtn" type="button" onclick="changeNum('inPersonalSiembra',-1)">−</button>
+            <span class="cval" id="vPersonalSiembra">0</span>
+            <button class="cbtn" type="button" onclick="changeNum('inPersonalSiembra',1)">+</button>
+            <input type="hidden" id="inPersonalSiembra" value="0"/>
+          </div>
+        </div>
+
+        <!-- CAMPOS DETALLE: FERTILIZACION -->
+        <div class="field detalle-fertilizacion" style="display:none">
+          <label>Hora inicio</label>
+          <input type="time" id="inHoraIni"/>
+        </div>
+        <div class="field detalle-fertilizacion" style="display:none">
+          <label>Hora fin</label>
+          <input type="time" id="inHoraFin"/>
+        </div>
+        <div class="field detalle-fertilizacion" style="display:none">
+          <label>Quintales aplicados (qq)</label>
+          <input type="number" step="0.01" id="inQq" placeholder="0.00"/>
+        </div>
+
+        <!-- CAMPOS DETALLE: DESPEDRADO -->
+        <div class="field detalle-despedrado" style="display:none">
+          <label>Personal utilizado</label>
+          <div class="counter">
+            <button class="cbtn" type="button" onclick="changeNum('inPersonalDespedrado',-1)">−</button>
+            <span class="cval" id="vPersonalDespedrado">0</span>
+            <button class="cbtn" type="button" onclick="changeNum('inPersonalDespedrado',1)">+</button>
+            <input type="hidden" id="inPersonalDespedrado" value="0"/>
+          </div>
+        </div>
+
+        <!-- CAMPOS COMUNES SIN DETALLE -->
+        <div class="field detalle-generico" style="display:none">
+          <label>Personal</label>
+          <div class="counter">
+            <button class="cbtn" type="button" onclick="changeNum('inPersonalGen',-1)">−</button>
+            <span class="cval" id="vPersonalGen">0</span>
+            <button class="cbtn" type="button" onclick="changeNum('inPersonalGen',1)">+</button>
+            <input type="hidden" id="inPersonalGen" value="0"/>
+          </div>
+        </div>
+
+        <div class="check-row" id="checkFinalizado" onclick="toggleFinalizado()">
+          <input type="checkbox" id="chkFinalizado"/>
+          <label>Marcar lote como finalizado</label>
+        </div>
+
+        <div class="field" style="margin-top:13px">
+          <label>Observaciones (opcional)</label>
+          <textarea id="inObs" placeholder="Ej: clima, incidencias, etc."></textarea>
+        </div>
+
+        <div class="field" id="fieldObsFp" style="display:none">
+          <label style="color:#B91C1C">Observación de fuera de plan (obligatoria)</label>
+          <textarea id="inObsFp" placeholder="Por qué se registra fuera del plan diario"></textarea>
+        </div>
+      </div>
+
+      <!-- FERTIRRIEGO ESPECIAL -->
+      <div class="card" id="cardFertirriego" style="display:none">
+        <div class="card-title">Aplicación de Fertirriego</div>
+        <div class="field">
+          <label>Finca</label>
+          <select id="selFincaFR" onchange="onFincaFR()">
+            <option value="">Seleccionar finca...</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Tipo de fertirriego</label>
+          <select id="selFertirriego" onchange="onFertirriegoSel()" disabled>
+            <option value="">Selecciona finca primero</option>
+          </select>
+        </div>
+        <div id="bloqueTurnos" style="display:none">
+          <div class="field">
+            <label>Selecciona turno aplicado</label>
+            <div class="turno-grid" id="turnosGrid"></div>
+          </div>
+          <div class="field">
+            <label>Fecha de aplicación</label>
+            <input type="date" id="inFechaFR"/>
+          </div>
+          <div class="field">
+            <label>Producto / mezcla aplicada</label>
+            <input type="text" id="inProductoFR" placeholder="Ej: Urea + KCl"/>
+          </div>
+          <div class="field">
+            <label>Observaciones (opcional)</label>
+            <textarea id="inObsFR"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-guardar" id="btnGuardar" onclick="guardar()" style="display:none">Guardar registro</button>
+    </div>
+
+    <!-- HISTORIAL -->
+    <div class="sec" id="sec-historial">
+      <div id="histList"></div>
+    </div>
+
+    <!-- RESUMEN -->
+    <div class="sec" id="sec-resumen">
+      <div class="stats-grid">
+        <div class="stat">
+          <div class="stat-lbl">Hoy</div>
+          <div class="stat-val" id="stHoy">0</div>
+        </div>
+        <div class="stat">
+          <div class="stat-lbl">Esta semana</div>
+          <div class="stat-val" id="stSem">0</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Total ha registradas</div>
+        <div class="stat-val" id="stHa">0.00</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
 <script>
-const RAW_BASE = {"TODOS":{"ranges":["0.5-1","1-1.5","1.5-2","2-2.5","2.5-3","3-3.5","3.5-4","4-4.5","5.5-6"],"n":[6,3,5,24,74,80,33,10,2],"ha":[41.06,27.53,54.01,237.9,836.03,962.81,483.71,123.18,30.08],"tch":[107.314,112.073,87.632,106.934,106.067,100.357,84.054,75.177,50.215],"pol":[11.162,11.437,13.044,12.477,11.875,11.633,11.51,11.13,12.434],"tah":[9.509,10.447,9.635,10.97,10.322,9.371,7.728,6.749,5.276],"nMean":[0.708,1.33,1.866,2.365,2.773,3.21,3.733,4.137,5.73]},"CON":{"ranges":["0.5-1","1-1.5","1.5-2","2-2.5","2.5-3","3-3.5","3.5-4","4-4.5"],"n":[4,1,1,7,30,43,21,6],"ha":[17.79,3.83,5.43,65.98,360.71,509.02,298.88,64.1],"tch":[90.866,226.295,118.823,118.779,104.972,98.389,86.12,78.562],"pol":[12.193,12.97,13.62,12.418,12.161,11.94,12.156,12.033],"tah":[8.96,23.79,13.25,11.999,10.55,9.485,8.422,7.748],"nMean":[0.627,1.402,1.883,2.425,2.804,3.243,3.745,4.155]},"SIN":{"ranges":["0.5-1","1-1.5","1.5-2","2-2.5","2.5-3","3-3.5","3.5-4","4-4.5","5.5-6"],"n":[2,2,4,17,44,37,12,4,2],"ha":[23.27,23.7,48.58,171.92,475.32,453.79,184.83,59.08,30.08],"tch":[119.888,93.615,84.145,102.387,106.898,102.564,80.713,71.505,50.215],"pol":[10.374,11.189,12.979,12.5,11.657,11.289,10.466,10.149,12.434],"tah":[9.929,8.29,9.231,10.576,10.148,9.244,6.607,5.666,5.276],"nMean":[0.77,1.318,1.864,2.342,2.75,3.173,3.713,4.118,5.73]},"SEM_2":{"ranges":["2.5-3","3-3.5","3.5-4"],"n":[2,8,4],"ha":[12.91,88.19,49.78],"tch":[114.662,104.023,82.223],"pol":[8.573,9.699,9.203],"tah":[7.396,7.774,5.742],"nMean":[2.527,3.231,3.567]},"SEM_3":{"ranges":["0.5-1","2.5-3","3-3.5","3.5-4"],"n":[2,3,9,4],"ha":[17.95,38.96,110.23,52.17],"tch":[105.885,104.901,105.262,84.362],"pol":[10.309,11.011,10.975,11.908],"tah":[8.424,8.976,8.946,8.008],"nMean":[0.631,2.883,3.232,3.767]},"SEM_4":{"ranges":["2.5-3","3-3.5","3.5-4","4-4.5"],"n":[1,4,3,1],"ha":[7.24,61.54,62.5,19.37],"tch":[73.365,109.201,75.338,81.7],"pol":[10.62,10.926,10.656,11.67],"tah":[5.85,9.345,6.214,7.52],"nMean":[2.753,3.12,3.847,4.109]},"SEM_5":{"ranges":["1-1.5","2.5-3","3-3.5","3.5-4"],"n":[1,5,3,5],"ha":[17.85,80.04,32.35,55.54],"tch":[99.478,121.254,93.147,98.355],"pol":[10.93,10.064,10.058,11.682],"tah":[8.5,9.641,7.267,9.012],"nMean":[1.267,2.735,3.156,3.788]},"SEM_6":{"ranges":["2.5-3","3-3.5","3.5-4","4-4.5"],"n":[2,1,1,1],"ha":[22.44,10.41,17.01,25.31],"tch":[117.801,101.534,112.082,78.41],"pol":[10.909,11.51,11.57,10.21],"tah":[10.181,9.28,10.12,6.15],"nMean":[2.723,3.193,3.748,4.013]},"SEM_7":{"ranges":["2-2.5","2.5-3","3-3.5","3.5-4"],"n":[1,5,8,3],"ha":[4.21,44.07,121.04,37.8],"tch":[94.561,112.505,117.007,105.15],"pol":[10.74,10.354,10.647,10.658],"tah":[8.33,9.278,10.1,9.138],"nMean":[2.374,2.799,3.202,3.647]},"SEM_8":{"ranges":["2-2.5","2.5-3","3-3.5","3.5-4"],"n":[2,9,5,2],"ha":[18.14,123.69,69.55,33.52],"tch":[153.749,113.358,106.621,86.779],"pol":[10.043,11.602,11.005,11.765],"tah":[12.56,11.011,9.542,8.205],"nMean":[2.432,2.773,3.188,3.659]},"SEM_9":{"ranges":["1.5-2","2-2.5","2.5-3","3-3.5","3.5-4","4-4.5","5.5-6"],"n":[1,3,7,5,3,2,1],"ha":[5.43,45.81,66.91,20.47,34.56,20.6,19.27],"tch":[118.823,110.515,115.414,93.162,73.113,66.397,55.916],"pol":[13.62,12.31,12.352,12.732,12.76,11.427,12.15],"tah":[13.25,11.27,11.861,9.644,7.794,6.418,5.75],"nMean":[1.883,2.438,2.863,3.189,3.864,4.097,5.68]},"SEM_10":{"ranges":["2-2.5","2.5-3","3-3.5","3.5-4","4-4.5"],"n":[2,7,8,5,1],"ha":[18.23,96.55,119.4,74.82,10.37],"tch":[122.672,100.835,90.661,79.567,90.299],"pol":[13.818,12.966,13.476,12.868,12.67],"tah":[13.712,11.004,9.92,8.316,9.24],"nMean":[2.464,2.811,3.224,3.643,4.207]},"SEM_11":{"ranges":["0.5-1","2-2.5","2.5-3","3-3.5","4-4.5"],"n":[4,2,3,2,1],"ha":[23.11,13.0,41.24,21.49,10.37],"tch":[108.424,103.539,90.405,99.089,86.045],"pol":[11.825,12.496,12.384,13.077,12.89],"tah":[10.352,10.38,9.147,10.506,9.04],"nMean":[0.768,2.333,2.9,3.218,4.289]},"SEM_12":{"ranges":["1.5-2","2-2.5","2.5-3","3-3.5"],"n":[4,3,4,2],"ha":[48.58,35.0,50.96,13.73],"tch":[84.145,61.423,99.918,64.07],"pol":[12.979,12.801,12.425,12.559],"tah":[9.231,6.499,10.206,6.8],"nMean":[1.864,2.353,2.76,3.248]},"SEM_13":{"ranges":["2-2.5","2.5-3","3-3.5"],"n":[1,4,2],"ha":[11.04,39.14,9.27],"tch":[120.761,115.842,93.68],"pol":[13.81,12.363,13.403],"tah":[14.03,11.961,10.538],"nMean":[2.363,2.788,3.193]},"SEM_14":{"ranges":["2-2.5","2.5-3"],"n":[3,3],"ha":[30.11,37.15],"tch":[140.587,97.559],"pol":[12.852,12.504],"tah":[14.986,10.148],"nMean":[2.3,2.661]},"SEM_15":{"ranges":["2-2.5","2.5-3","3-3.5","3.5-4","4-4.5"],"n":[2,3,7,2,1],"ha":[11.07,30.61,92.61,46.22,11.3],"tch":[95.253,87.65,101.158,77.191,60.869],"pol":[11.371,11.825,11.837,11.383,11.59],"tah":[8.89,8.508,9.962,7.332,5.83],"nMean":[2.354,2.645,3.192,3.718,4.383]},"SEM_16":{"ranges":["1-1.5","2-2.5","2.5-3","3-3.5","3.5-4","4-4.5","5.5-6"],"n":[1,4,10,7,1,2,1],"ha":[5.85,43.5,70.9,71.82,19.79,13.16,10.81],"tch":[75.723,87.552,94.932,87.909,58.347,68.968,40.054],"pol":[11.98,12.694,12.555,12.751,12.6,12.041,12.94],"tah":[7.65,9.397,10.056,9.508,6.2,6.996,4.43],"nMean":[1.473,2.346,2.738,3.266,3.956,4.112,5.82]},"SEM_17":{"ranges":["1-1.5","2-2.5","2.5-3","3-3.5"],"n":[1,1,6,9],"ha":[3.83,7.79,73.22,120.71],"tch":[226.295,132.008,101.051,92.685],"pol":[12.97,12.47,12.929,12.466],"tah":[23.79,13.48,10.906,9.557],"nMean":[1.402,2.035,2.748,3.225]},"RIEGO_ASPERSION":{"ranges":["0.5-1","1-1.5","1.5-2","2-2.5","2.5-3","3-3.5","3.5-4","4-4.5","5.5-6"],"n":[6,3,5,22,70,66,24,8,1],"ha":[41.06,27.53,54.01,221.57,797.95,814.85,375.47,102.58,10.81],"tch":[107.314,112.073,87.632,106.519,107.183,100.804,84.304,76.94,40.054],"pol":[11.162,11.437,13.044,12.462,11.828,11.771,11.24,11.07,12.94],"tah":[9.509,10.447,9.635,10.918,10.394,9.544,7.523,6.816,4.43],"nMean":[0.708,1.33,1.866,2.371,2.77,3.209,3.727,4.145,5.82]},"RIEGO_GRAVEDAD":{"ranges":["2-2.5","2.5-3","3-3.5","3.5-4","4-4.5","5.5-6"],"n":[1,1,11,9,2,1],"ha":[11.47,17.65,108.49,108.24,20.6,19.27],"tch":[107.042,87.006,91.659,83.189,66.397,55.916],"pol":[12.56,12.53,10.99,12.445,11.427,12.15],"tah":[10.76,8.97,7.92,8.439,6.418,5.75],"nMean":[2.346,2.886,3.23,3.752,4.097,5.68]},"RIEGO_PIVOTE":{"ranges":["3-3.5"],"n":[2],"ha":[35.41],"tch":[115.4],"pol":[10.289],"tah":[9.546],"nMean":[3.154]},"RIEGO_SECANO":{"ranges":["2-2.5","2.5-3","3-3.5"],"n":[1,3,1],"ha":[4.86,20.43,4.06],"tch":[125.558,78.943,111.84],"pol":[12.99,13.135,13.02],"tah":[13.84,8.657,11.82],"nMean":[2.139,2.806,3.37]}};
+// ========== CONFIGURACION ==========
+const SUPABASE_URL = 'https://dhbyjqmdcezdiucxeqpp.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRoYnlqcW1kY2V6ZGl1Y3hlcXBwIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NzEzMjY2MSwiZXhwIjoyMDkyNzA4NjYxfQ.zs3TkSbu2QTOfF1XV3qsiIO9R4Iv3nu8I9u1xNLd-e4';
 
-// State
-let selMad = 'TODOS', selRiego = 'TODOS', selSem = 'TODOS';
-let mainChart = null, tableVisible = false;
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-const ZONE_CFG = {
-  // ============================================================
-  // ETIQUETA 13 — NOMBRES DE LAS ZONAS (aparecen en el gráfico,
-  // tabla, tooltips y barra de colores)
-  // Cambia el valor de "label" en cada zona
-  // ============================================================
-  opt:    { barColor:'#185FA5', segBg:'#B5D4F4', segTxt:'#0C447C', label:'ÓPTIMO',           badge:'badge-opt', rowClass:'opt-row'   },
-  subopt: { barColor:'#BA7517', segBg:'#FAC775', segTxt:'#633806', label:'Subóptimo',         badge:'badge-sub', rowClass:''          },
-  under:  { barColor:'#3B6D11', segBg:'#C0DD97', segTxt:'#27500A', label:'Subdosificación',   badge:'badge-und', rowClass:'under-row' },
-  over:   { barColor:'#A32D2D', segBg:'#F7C1C1', segTxt:'#501313', label:'Sobredosificación', badge:'badge-ove', rowClass:'over-row'  }
-};
+// ========== ESTADO ==========
+let usuario = null;        // datos de user_perfiles
+let actividadesPerm = [];  // actividades permitidas para el usuario
+let fincasPerm = [];       // fincas permitidas (vacío = todas)
+let actSel = null;         // actividad seleccionada actualmente
+let plantios = [];         // todos los plantíos cargados
+let fincasUnicas = [];     // lista de fincas únicas
+let lotesPorFinca = {};    // lotes agrupados por finca
+let lotesUsadosFR = {};    // turnos ya aplicados por fertirriego
+let fertirriegoActual = null;
+let turnoSeleccionado = null;
 
-function normalize(arr) {
-  const mn = Math.min(...arr), mx = Math.max(...arr);
-  if (mx === mn) return arr.map(() => 0.5);
-  return arr.map(v => (v - mn) / (mx - mn));
-}
+// ========== AUTH ==========
+async function login(){
+  const email = document.getElementById('inputEmail').value.trim();
+  const pass = document.getElementById('inputPass').value;
+  const errBox = document.getElementById('loginError');
+  const loadBox = document.getElementById('loginLoading');
+  const btn = document.getElementById('btnLogin');
 
-function getWeights() {
-  const wt = parseInt(document.getElementById('w-tch').value);
-  const wp = parseInt(document.getElementById('w-pol').value);
-  const wa = parseInt(document.getElementById('w-tah').value);
-  const total = wt + wp + wa || 1;
-  return [wt/total, wp/total, wa/total];
-}
-
-function classifyZones(ranges, composite, nMean) {
-  const maxScore = Math.max(...composite);
-  const optIdx = composite.indexOf(maxScore);
-  const threshold = maxScore * 0.75;
-  return ranges.map((r, i) => {
-    if (i === optIdx) return 'opt';
-    if (composite[i] >= threshold) return 'subopt';
-    return nMean[i] < nMean[optIdx] ? 'under' : 'over';
-  });
-}
-
-// Get current dataset key by intersecting filters
-function getDataKey() {
-  // We need to intersect filters. We have precomputed: TODOS, CON, SIN, SEM_*, RIEGO_*
-  // If only one non-TODOS filter is active, use that key directly.
-  // If multiple, we need to compute on the fly from raw rows — but we don't have them in JS.
-  // Strategy: prioritize SEM > RIEGO > MAD, warn user when combining.
-  // For simplicity, we filter by: SEM first, then RIEGO, then MAD — using precomputed keys.
-  // When multiple active: show best available single-key data + badge.
-
-  if (selSem !== 'TODOS') return selSem;
-  if (selRiego !== 'TODOS') return 'RIEGO_' + selRiego;
-  if (selMad !== 'TODOS') return selMad;
-  return 'TODOS';
-}
-
-function getFilterLabel() {
-  const parts = [];
-  if (selMad !== 'TODOS') {
-    const labels = {CON:'Con madurante', SIN:'Sin madurante'};
-    parts.push({cls:'ft-mad', txt: labels[selMad]});
-  }
-  if (selRiego !== 'TODOS') {
-    const labels = {ASPERSION:'Aspersión', GRAVEDAD:'Gravedad', PIVOTE:'Pivote', SECANO:'Secano'};
-    parts.push({cls:'ft-riego', txt: labels[selRiego]});
-  }
-  if (selSem !== 'TODOS') {
-    const num = selSem.replace('SEM_','');
-    parts.push({cls:'ft-sem', txt: 'Semana ' + num});
-  }
-  if (parts.length === 0) return '<span>Mostrando: <b>Todos los lotes</b></span>';
-
-  const multiWarn = parts.length > 1
-    ? ' <span style="color:#854F0B;font-size:11px;">⚠ Múltiples filtros: se aplica prioridad Semana > Riego > Madurante</span>'
-    : '';
-  return 'Filtros activos: ' + parts.map(p=>`<span class="filter-tag ${p.cls}">${p.txt}</span>`).join(' ') + multiWarn;
-}
-
-function render() {
-  const key = getDataKey();
-  const d = RAW_BASE[key];
-
-  if (!d || d.ranges.length < 2) {
-    document.getElementById('warn-box').className = 'warn-box show';
-    document.getElementById('warn-box').innerHTML = '⚠️ <b>Datos insuficientes:</b> El filtro actual no tiene suficientes rangos de dosis para calcular un índice comparativo. Selecciona un filtro con más lotes.';
-    // Still try to render with whatever we have
-    if (!d || d.ranges.length === 0) return;
-  } else {
-    document.getElementById('warn-box').className = 'warn-box';
+  errBox.style.display = 'none';
+  if(!email || !pass){
+    errBox.textContent = 'Ingresa email y contraseña';
+    errBox.style.display = 'block';
+    return;
   }
 
-  // Warn on low sample
-  const totalLotes = d.n.reduce((a,b)=>a+b,0);
-  const totalHA = d.ha.reduce((a,b)=>a+b,0);
-  if (totalLotes < 15 || totalHA < 100) {
-    document.getElementById('warn-box').className = 'warn-box show';
-    document.getElementById('warn-box').innerHTML = `⚠️ <b>Muestra reducida:</b> El filtro actual tiene solo <b>${totalLotes} lotes</b> y <b>${totalHA.toFixed(0)} ha</b>. Interpreta los resultados con cautela.`;
-  }
+  btn.disabled = true;
+  loadBox.style.display = 'block';
 
-  // Stats bar
-  document.getElementById('stats-bar').innerHTML =
-    `<span>Lotes: <b>${totalLotes}</b></span>` +
-    `<span>Hectáreas: <b>${totalHA.toFixed(0)} ha</b></span>` +
-    `<span>Rangos de dosis: <b>${d.ranges.length}</b></span>` +
-    `<span>N mínimo: <b>${Math.min(...d.nMean).toFixed(2)} lbs/ton</b></span>` +
-    `<span>N máximo: <b>${Math.max(...d.nMean).toFixed(2)} lbs/ton</b></span>`;
+  try {
+    const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+    if(error) throw error;
 
-  // Filter display
-  document.getElementById('filter-display').innerHTML = getFilterLabel();
-
-  const [wt, wp, wa] = getWeights();
-  const tchN = normalize(d.tch);
-  const polN = normalize(d.pol);
-  const tahN = normalize(d.tah);
-  const composite = tchN.map((_, i) => tchN[i]*wt + polN[i]*wp + tahN[i]*wa);
-  const zones = classifyZones(d.ranges, composite, d.nMean);
-
-  if (mainChart) mainChart.destroy();
-  mainChart = new Chart(document.getElementById('main-chart'), {
-    type: 'bar',
-    data: {
-      labels: d.ranges,
-      datasets: [
-        { type:'bar', label:'Índice consolidado', data: composite.map(v=>+v.toFixed(3)),
-          backgroundColor: zones.map(z=>ZONE_CFG[z].barColor), borderRadius:5, borderWidth:0, order:2, yAxisID:'y' },
-        { type:'line', label:'TCH norm.', data: tchN.map(v=>+v.toFixed(3)),
-          borderColor:'rgba(55,138,221,0.8)', borderWidth:2, pointRadius:4, pointBackgroundColor:'#378ADD',
-          fill:false, tension:0.3, order:1, yAxisID:'y', borderDash:[5,3] },
-        { type:'line', label:'POL norm.', data: polN.map(v=>+v.toFixed(3)),
-          borderColor:'rgba(99,153,34,0.8)', borderWidth:2, pointRadius:4, pointBackgroundColor:'#639922',
-          fill:false, tension:0.3, order:1, yAxisID:'y', borderDash:[7,3] },
-        { type:'line', label:'TAH norm.', data: tahN.map(v=>+v.toFixed(3)),
-          borderColor:'rgba(186,117,23,0.85)', borderWidth:2, pointRadius:4, pointBackgroundColor:'#BA7517',
-          fill:false, tension:0.3, order:1, yAxisID:'y', borderDash:[2,3] }
-      ]
-    },
-    options: {
-      responsive:true, maintainAspectRatio:false,
-      plugins: {
-        legend: { display:false },
-        tooltip: {
-          callbacks: {
-            afterBody: (items) => {
-              const i = items[0].dataIndex;
-              // ============================================================
-              // ETIQUETA 14 — TEXTOS DEL TOOLTIP (ventana emergente al pasar
-              // el cursor sobre las barras del gráfico)
-              // Cambia las etiquetas entre comillas simples ''
-              // Los ${...} son valores calculados automáticamente, no los borres
-              // ============================================================
-              return ['──────────────────',
-                `Zona: ${ZONE_CFG[zones[i]].label}`,
-                `N prom. pond.: ${d.nMean[i].toFixed(2)} lbs/ton`,
-                `Hectáreas: ${d.ha[i].toFixed(0)} ha`,
-                `TCH: ${d.tch[i].toFixed(1)} t/ha`,
-                `POL: ${d.pol[i].toFixed(2)} %`,
-                `TAH: ${d.tah[i].toFixed(2)} t/ha`,
-                `Lotes: ${d.n[i]}`];
-            }
-          }
-        }
-      },
-      scales: {
-        // ============================================================
-        // ETIQUETA 15 — TÍTULOS DE LOS EJES DEL GRÁFICO
-        // Eje X: cambia el valor de text: bajo "title" del eje x
-        // Eje Y: cambia el valor de text: bajo "title" del eje y
-        // ============================================================
-        x: { ticks:{font:{size:12}}, grid:{display:false},
-             title:{display:true, text:'Rango de dosis (lbs Nitrógeno / tonelada de caña)', font:{size:12}, color:'#555'} },
-        y: { min:0, max:1.08,
-             title:{display:true, text:'Índice normalizado  (0 = mínimo · 1 = máximo)', font:{size:11}, color:'#555'},
-             ticks:{font:{size:11}, callback:v=>v.toFixed(1)} }
-      }
+    // Cargar perfil
+    const { data: perfil, error: e2 } = await sb.from('user_perfiles').select('*').eq('email', email).maybeSingle();
+    if(e2 || !perfil){
+      throw new Error('Tu usuario no tiene perfil configurado en el sistema');
     }
+    if(!perfil.activo){
+      throw new Error('Tu usuario está desactivado');
+    }
+    if(!perfil.rol_avc){
+      throw new Error('Tu usuario no tiene rol asignado. Contacta al administrador.');
+    }
+
+    usuario = perfil;
+    sessionStorage.setItem('usuario', JSON.stringify(perfil));
+    await iniciarApp();
+
+  } catch(err){
+    errBox.textContent = err.message || 'Error de autenticación';
+    errBox.style.display = 'block';
+    btn.disabled = false;
+    loadBox.style.display = 'none';
+  }
+}
+
+async function logout(){
+  await sb.auth.signOut();
+  sessionStorage.clear();
+  usuario = null;
+  document.getElementById('mainApp').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('inputPass').value = '';
+}
+
+// ========== INICIO ==========
+async function iniciarApp(){
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('mainApp').style.display = 'block';
+  document.getElementById('headerUser').textContent = usuario.nombre_completo;
+  document.getElementById('headerRol').textContent = usuario.rol_avc.replace(/_/g,' ');
+  document.getElementById('headerFecha').textContent = new Date().toLocaleDateString('es-HN', {weekday:'long',day:'numeric',month:'long'});
+
+  // Set fecha por defecto
+  const hoy = new Date().toISOString().split('T')[0];
+  document.getElementById('inFecha').value = hoy;
+  document.getElementById('inFechaFR').value = hoy;
+
+  await cargarPermisos();
+  await cargarPlantios();
+  renderActividades();
+  renderHistorial();
+  renderResumen();
+}
+
+async function cargarPermisos(){
+  const esAdmin = usuario.rol_avc === 'admin' || usuario.rol_avc === 'programador';
+
+  if(esAdmin){
+    // Admin ve todas las actividades activas
+    const { data, error } = await sb.from('avc_actividades')
+      .select('*')
+      .eq('activa', true)
+      .order('codigo_actividad');
+    
+    if(error){
+      toast('Error cargando actividades: ' + error.message, 'error');
+      console.error(error);
+      return;
+    }
+    
+    // Filtrar en JS: solo las que tienen detalle o son fertirriego
+    actividadesPerm = (data || []).filter(a => a.requiere_detalle || a.es_fertirriego);
+    console.log('Actividades cargadas:', actividadesPerm.length, actividadesPerm);
+  } else {
+    // Usuario normal: solo sus actividades permitidas
+    const { data } = await sb.from('avc_usuario_actividades')
+      .select('codigo_actividad, avc_actividades(*)')
+      .eq('email', usuario.email);
+    actividadesPerm = (data || []).map(r => r.avc_actividades).filter(a => a && a.activa);
+  }
+
+  // Permisos de fincas
+  const { data: fp } = await sb.from('avc_usuario_fincas')
+    .select('finca')
+    .eq('email', usuario.email);
+  fincasPerm = (fp || []).map(r => r.finca);
+}
+
+async function cargarPlantios(){
+  // Cargar todos los plantíos activos
+  let query = sb.from('maestro_plantios').select('finca_lote, finca, descripcion_finca, area_ha, variedad, ciclo, tipo_riego');
+
+  if(fincasPerm.length > 0){
+    query = query.in('finca', fincasPerm);
+  }
+
+  const { data, error } = await query;
+  if(error){ toast('Error cargando lotes', 'error'); return; }
+
+  plantios = data || [];
+
+  // Agrupar por finca
+  fincasUnicas = [...new Set(plantios.map(p => p.descripcion_finca).filter(Boolean))].sort();
+  lotesPorFinca = {};
+  plantios.forEach(p => {
+    if(!lotesPorFinca[p.descripcion_finca]) lotesPorFinca[p.descripcion_finca] = [];
+    lotesPorFinca[p.descripcion_finca].push(p);
   });
 
-  const totalHaSum = d.ha.reduce((a,b)=>a+b,0);
-
-  document.getElementById('zone-bar').innerHTML = d.ranges.map((r,i) => {
-    const c = ZONE_CFG[zones[i]];
-    return `<div class="zone-seg" style="background:${c.segBg};color:${c.segTxt};" title="${c.label} | ${d.ha[i].toFixed(0)} ha">${r}</div>`;
-  }).join('');
-
-  document.getElementById('ha-bar-row').innerHTML = d.ranges.map((r,i) => {
-    const pct = (d.ha[i]/totalHaSum*100).toFixed(1);
-    return `<div class="ha-seg" style="flex:${d.ha[i]};background:${ZONE_CFG[zones[i]].barColor};" title="${r}: ${d.ha[i].toFixed(0)} ha (${pct}%)">${pct}%</div>`;
-  }).join('');
-
-  const optIdx = zones.indexOf('opt');
-  const overIdxes = zones.map((z,i)=>z==='over'?i:-1).filter(i=>i>=0);
-  const pctLoss = overIdxes.length ? ((composite[optIdx]-composite[overIdxes[0]])/composite[optIdx]*100).toFixed(1) : null;
-
-  // ============================================================
-  // ETIQUETA 16 — TARJETAS DE MÉTRICAS (4 cuadros de resumen)
-  // Cambia los textos entre comillas de mc-label y mc-sub
-  // Los ${...} son valores calculados, no los borres
-  // ============================================================
-  document.getElementById('metrics-row').innerHTML = `
-    <div class="mc"><div class="mc-label">Rango óptimo</div>
-      <div class="mc-val">${d.ranges[optIdx]}</div>
-      <div class="mc-sub">lbs N/ton · índice ${(composite[optIdx]*100).toFixed(0)}/100</div></div>
-    <div class="mc"><div class="mc-label">N promedio óptimo</div>
-      <div class="mc-val">${d.nMean[optIdx].toFixed(2)}</div>
-      <div class="mc-sub">lbs N/ton (ponderado por HA)</div></div>
-    <div class="mc"><div class="mc-label">Hectáreas en óptimo</div>
-      <div class="mc-val">${d.ha[optIdx].toFixed(0)}</div>
-      <div class="mc-sub">${(d.ha[optIdx]/totalHaSum*100).toFixed(1)}% del área del grupo</div></div>
-
-  `;
-
-  document.getElementById('detail-tbody').innerHTML = d.ranges.map((r,i) => {
-    const z = zones[i];
-    return `<tr class="${ZONE_CFG[z].rowClass}">
-      <td>${r}</td><td>${d.nMean[i].toFixed(2)}</td><td>${d.n[i]}</td><td>${d.ha[i].toFixed(1)}</td>
-      <td>${d.tch[i].toFixed(1)}</td><td>${d.pol[i].toFixed(2)}</td><td>${d.tah[i].toFixed(2)}</td>
-      <td>${tchN[i].toFixed(3)}</td><td>${polN[i].toFixed(3)}</td><td>${tahN[i].toFixed(3)}</td>
-      <td><b>${(composite[i]*100).toFixed(1)}</b></td>
-      <td><span class="badge ${ZONE_CFG[z].badge}">${ZONE_CFG[z].label}</span></td>
-    </tr>`;
-  }).join('');
+  // Llenar selects
+  const selF = document.getElementById('selFinca');
+  const selFR = document.getElementById('selFincaFR');
+  fincasUnicas.forEach(f => {
+    selF.innerHTML += `<option value="${f}">${f}</option>`;
+    selFR.innerHTML += `<option value="${f}">${f}</option>`;
+  });
 }
 
-// PILL HANDLERS
-document.getElementById('mad-pills').addEventListener('click', e => {
-  const btn = e.target.closest('[data-mad]');
-  if (!btn) return;
-  selMad = btn.dataset.mad;
-  document.querySelectorAll('[data-mad]').forEach(p => p.classList.remove('active'));
-  btn.classList.add('active');
-  render();
-});
+// ========== RENDER ACTIVIDADES ==========
+function renderActividades(){
+  const grid = document.getElementById('actGrid');
 
-document.getElementById('riego-pills').addEventListener('click', e => {
-  const btn = e.target.closest('[data-riego]');
-  if (!btn) return;
-  selRiego = btn.dataset.riego;
-  document.querySelectorAll('[data-riego]').forEach(p => { p.classList.remove('active'); p.classList.remove('active-riego'); });
-  btn.classList.add(selRiego === 'TODOS' ? 'active' : 'active-riego');
-  render();
-});
+  // Filtrar: solo las que tienen detalle definido o son fertirriego
+  // (las que están listas para registrar)
+  const activs = actividadesPerm.filter(a => a.requiere_detalle || a.es_fertirriego);
 
-document.getElementById('sem-pills').addEventListener('click', e => {
-  const btn = e.target.closest('[data-sem]');
-  if (!btn) return;
-  selSem = btn.dataset.sem;
-  document.querySelectorAll('[data-sem]').forEach(p => { p.classList.remove('active'); p.classList.remove('active-sem'); });
-  btn.classList.add(selSem === 'TODOS' ? 'active' : 'active-sem');
-  render();
-});
+  if(activs.length === 0){
+    grid.innerHTML = '<div style="grid-column:1/-1;padding:1rem;text-align:center;color:#9ca3af;font-size:13px">No tienes actividades habilitadas para registro</div>';
+    return;
+  }
 
-function updateWeights() {
-  const wt = parseInt(document.getElementById('w-tch').value);
-  const wp = parseInt(document.getElementById('w-pol').value);
-  const wa = parseInt(document.getElementById('w-tah').value);
-  const total = wt + wp + wa || 1;
-  document.getElementById('v-tch').textContent = Math.round(wt/total*100)+'%';
-  document.getElementById('v-pol').textContent = Math.round(wp/total*100)+'%';
-  document.getElementById('v-tah').textContent = Math.round(wa/total*100)+'%';
-  render();
+  grid.innerHTML = activs.map(a => `
+    <button class="act-btn" data-codigo="${a.codigo_actividad}" onclick="selAct(this)">
+      ${a.nombre_actividad}
+    </button>
+  `).join('');
+
+  // Si solo hay 1, seleccionarla automáticamente
+  if(activs.length === 1){
+    grid.querySelector('.act-btn').click();
+  }
 }
 
-function toggleTable() {
-  tableVisible = !tableVisible;
-  document.getElementById('detail-table').style.display = tableVisible ? 'table' : 'none';
-  document.querySelector('.detail-toggle').textContent = (tableVisible ? '▼' : '▶') + 'Tabla de datos detallada';
+function selAct(btn){
+  document.querySelectorAll('.act-btn').forEach(b => b.classList.remove('sel'));
+  btn.classList.add('sel');
+
+  const codigo = parseInt(btn.dataset.codigo);
+  actSel = actividadesPerm.find(a => a.codigo_actividad === codigo);
+
+  // Mostrar formulario apropiado
+  if(actSel.es_fertirriego){
+    document.getElementById('cardUbicacion').style.display = 'none';
+    document.getElementById('cardCampos').style.display = 'none';
+    document.getElementById('cardFertirriego').style.display = 'block';
+    document.getElementById('btnGuardar').style.display = 'block';
+    document.getElementById('btnGuardar').textContent = 'Registrar aplicación';
+  } else {
+    document.getElementById('cardFertirriego').style.display = 'none';
+    document.getElementById('cardUbicacion').style.display = 'block';
+    document.getElementById('cardCampos').style.display = 'block';
+    document.getElementById('btnGuardar').style.display = 'block';
+    document.getElementById('btnGuardar').textContent = 'Guardar registro';
+
+    // Mostrar campos detalle según actividad
+    document.querySelectorAll('[class*="detalle-"]').forEach(el => el.style.display = 'none');
+
+    if(actSel.requiere_detalle === 'avc_det_siembra'){
+      document.querySelectorAll('.detalle-siembra').forEach(el => el.style.display = 'block');
+    } else if(actSel.requiere_detalle === 'avc_det_fertilizacion'){
+      document.querySelectorAll('.detalle-fertilizacion').forEach(el => el.style.display = 'block');
+    } else if(actSel.requiere_detalle === 'avc_det_despedrado'){
+      document.querySelectorAll('.detalle-despedrado').forEach(el => el.style.display = 'block');
+    } else {
+      document.querySelectorAll('.detalle-generico').forEach(el => el.style.display = 'block');
+    }
+  }
 }
 
-render();
+// ========== UBICACION ==========
+function onFinca(){
+  const finca = document.getElementById('selFinca').value;
+  const selL = document.getElementById('selLote');
+  selL.innerHTML = '<option value="">Seleccionar lote...</option>';
+  document.getElementById('infoLote').classList.remove('show');
+
+  if(!finca){ selL.disabled = true; return; }
+  selL.disabled = false;
+
+  const lotes = lotesPorFinca[finca] || [];
+  lotes.forEach(l => {
+    selL.innerHTML += `<option value="${l.finca_lote}">${l.finca_lote} (${l.area_ha} ha)</option>`;
+  });
+}
+
+async function onLote(){
+  const fl = document.getElementById('selLote').value;
+  if(!fl){ document.getElementById('infoLote').classList.remove('show'); return; }
+
+  const lote = plantios.find(p => p.finca_lote === fl);
+  if(!lote || !actSel) return;
+
+  // Obtener avance acumulado de esta actividad en este lote
+  const { data } = await sb.from('avc_registros')
+    .select('ha_avance')
+    .eq('finca_lote', fl)
+    .eq('codigo_actividad', actSel.codigo_actividad);
+
+  const acum = (data || []).reduce((s, r) => s + parseFloat(r.ha_avance || 0), 0);
+
+  document.getElementById('infoArea').textContent = lote.area_ha + ' ha';
+  document.getElementById('infoVar').textContent = lote.variedad || 'N/A';
+  document.getElementById('infoAcum').textContent = acum.toFixed(2) + ' / ' + lote.area_ha + ' ha';
+
+  document.getElementById('infoWarn').style.display = (acum >= lote.area_ha) ? 'block' : 'none';
+  document.getElementById('infoLote').classList.add('show');
+
+  // Verificar si está fuera de plan (solo Tipo B)
+  await verificarFueraPlan(fl);
+}
+
+async function verificarFueraPlan(fl){
+  if(!actSel || !actSel.requiere_programacion){
+    document.getElementById('fieldObsFp').style.display = 'none';
+    return;
+  }
+
+  const fecha = document.getElementById('inFecha').value;
+  const { data } = await sb.from('avc_programacion')
+    .select('id')
+    .eq('fecha', fecha)
+    .eq('finca_lote', fl)
+    .eq('codigo_actividad', actSel.codigo_actividad)
+    .maybeSingle();
+
+  if(!data){
+    document.getElementById('fieldObsFp').style.display = 'block';
+  } else {
+    document.getElementById('fieldObsFp').style.display = 'none';
+  }
+}
+
+// ========== FERTIRRIEGO ==========
+async function onFincaFR(){
+  const finca = document.getElementById('selFincaFR').value;
+  const sel = document.getElementById('selFertirriego');
+  sel.innerHTML = '<option value="">Selecciona fertirriego...</option>';
+  document.getElementById('bloqueTurnos').style.display = 'none';
+
+  if(!finca){ sel.disabled = true; return; }
+  sel.disabled = false;
+
+  // Obtener todos los fertirriegos
+  const { data: ferts } = await sb.from('avc_actividades')
+    .select('*')
+    .eq('es_fertirriego', true)
+    .order('codigo_actividad');
+
+  // Obtener cabeceras existentes para esta finca
+  const fincaCod = plantios.find(p => p.descripcion_finca === finca)?.finca;
+
+  ferts.forEach(f => {
+    sel.innerHTML += `<option value="${f.codigo_actividad}">${f.nombre_actividad}</option>`;
+  });
+}
+
+async function onFertirriegoSel(){
+  const codigo = parseInt(document.getElementById('selFertirriego').value);
+  if(!codigo){ document.getElementById('bloqueTurnos').style.display = 'none'; return; }
+
+  const fincaDesc = document.getElementById('selFincaFR').value;
+  const fincaCod = plantios.find(p => p.descripcion_finca === fincaDesc)?.finca;
+
+  // Buscar o crear cabecera
+  let { data: cab } = await sb.from('avc_fertirriego')
+    .select('*')
+    .eq('finca', fincaCod)
+    .eq('codigo_actividad', codigo)
+    .maybeSingle();
+
+  if(!cab){
+    const { data: nuevo, error } = await sb.from('avc_fertirriego')
+      .insert({
+        finca: fincaCod,
+        codigo_actividad: codigo,
+        creado_por: usuario.email
+      })
+      .select()
+      .single();
+    if(error){ toast('Error: '+error.message, 'error'); return; }
+    cab = nuevo;
+  }
+
+  fertirriegoActual = cab;
+
+  // Obtener turnos ya aplicados
+  const { data: aplicados } = await sb.from('avc_fertirriego_aplicaciones')
+    .select('numero_turno')
+    .eq('fertirriego_id', cab.id);
+  const turnosDone = (aplicados || []).map(a => a.numero_turno);
+
+  // Renderizar grid de turnos
+  const grid = document.getElementById('turnosGrid');
+  grid.innerHTML = '';
+  for(let i = 1; i <= 6; i++){
+    const done = turnosDone.includes(i);
+    grid.innerHTML += `<button class="turno-btn ${done?'done':''}" type="button" onclick="${done?'':`selTurno(${i})`}" data-turno="${i}">${i}${done?' ✓':''}</button>`;
+  }
+
+  turnoSeleccionado = null;
+  document.getElementById('bloqueTurnos').style.display = 'block';
+}
+
+function selTurno(n){
+  turnoSeleccionado = n;
+  document.querySelectorAll('.turno-btn').forEach(b => {
+    if(!b.classList.contains('done')) b.classList.remove('sel');
+  });
+  document.querySelector(`.turno-btn[data-turno="${n}"]`).classList.add('sel');
+}
+
+// ========== HELPERS ==========
+function changeNum(id, delta){
+  const el = document.getElementById(id);
+  let v = parseInt(el.value || 0) + delta;
+  if(v < 0) v = 0;
+  el.value = v;
+  document.getElementById('v' + id.substring(2)).textContent = v;
+}
+
+function toggleFinalizado(){
+  const chk = document.getElementById('chkFinalizado');
+  chk.checked = !chk.checked;
+  document.getElementById('checkFinalizado').classList.toggle('checked', chk.checked);
+}
+
+function toast(msg, tipo='success'){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + tipo;
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+function setTab(tab){
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.sec').forEach(s => s.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('sec-'+tab).classList.add('active');
+  if(tab === 'historial') renderHistorial();
+  if(tab === 'resumen') renderResumen();
+}
+
+// ========== GUARDAR ==========
+async function guardar(){
+  const btn = document.getElementById('btnGuardar');
+  btn.disabled = true;
+  btn.textContent = 'Guardando...';
+
+  try {
+    if(actSel.es_fertirriego){
+      await guardarFertirriego();
+    } else {
+      await guardarRegistro();
+    }
+    toast('Registro guardado correctamente');
+    limpiarForm();
+    renderHistorial();
+    renderResumen();
+  } catch(err){
+    toast(err.message || 'Error al guardar', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = actSel.es_fertirriego ? 'Registrar aplicación' : 'Guardar registro';
+  }
+}
+
+async function guardarRegistro(){
+  const fl = document.getElementById('selLote').value;
+  const fecha = document.getElementById('inFecha').value;
+  const ha = parseFloat(document.getElementById('inHa').value || 0);
+
+  if(!fl) throw new Error('Selecciona un lote');
+  if(!fecha) throw new Error('Ingresa la fecha');
+  if(ha <= 0) throw new Error('Ingresa hectáreas avanzadas');
+
+  // Detectar si está fuera de plan (Tipo B)
+  let obsFp = null;
+  if(actSel.requiere_programacion){
+    const { data } = await sb.from('avc_programacion')
+      .select('id')
+      .eq('fecha', fecha)
+      .eq('finca_lote', fl)
+      .eq('codigo_actividad', actSel.codigo_actividad)
+      .maybeSingle();
+    if(!data){
+      obsFp = document.getElementById('inObsFp').value.trim();
+      if(!obsFp) throw new Error('Este lote no está en el plan. Debes ingresar la observación de fuera de plan');
+    }
+  }
+
+  // Personal según tipo
+  let personal = 0;
+  if(actSel.requiere_detalle === 'avc_det_siembra'){
+    personal = parseInt(document.getElementById('inPersonalSiembra').value || 0);
+  } else if(actSel.requiere_detalle === 'avc_det_despedrado'){
+    personal = parseInt(document.getElementById('inPersonalDespedrado').value || 0);
+  } else {
+    personal = parseInt(document.getElementById('inPersonalGen').value || 0);
+  }
+
+  // Insertar registro base
+  const { data: reg, error: e1 } = await sb.from('avc_registros').insert({
+    fecha,
+    finca_lote: fl,
+    codigo_actividad: actSel.codigo_actividad,
+    ha_avance: ha,
+    lote_finalizado: document.getElementById('chkFinalizado').checked,
+    personal_cantidad: personal > 0 ? personal : null,
+    observaciones: document.getElementById('inObs').value.trim() || null,
+    observacion_fuera_plan: obsFp,
+    registrado_por: usuario.email,
+    dispositivo: navigator.userAgent.substring(0, 100)
+  }).select().single();
+
+  if(e1) throw new Error(e1.message);
+
+  // Insertar detalle según actividad
+  if(actSel.requiere_detalle === 'avc_det_siembra'){
+    const { error } = await sb.from('avc_det_siembra').insert({
+      registro_id: reg.id,
+      personal_al_dia: personal
+    });
+    if(error) throw new Error(error.message);
+  } else if(actSel.requiere_detalle === 'avc_det_fertilizacion'){
+    const { error } = await sb.from('avc_det_fertilizacion').insert({
+      registro_id: reg.id,
+      hora_inicio: document.getElementById('inHoraIni').value,
+      hora_fin: document.getElementById('inHoraFin').value,
+      qq_aplicados: parseFloat(document.getElementById('inQq').value || 0)
+    });
+    if(error) throw new Error(error.message);
+  } else if(actSel.requiere_detalle === 'avc_det_despedrado'){
+    const { error } = await sb.from('avc_det_despedrado').insert({
+      registro_id: reg.id,
+      personal_utilizado: personal
+    });
+    if(error) throw new Error(error.message);
+  }
+}
+
+async function guardarFertirriego(){
+  if(!fertirriegoActual) throw new Error('Selecciona finca y fertirriego');
+  if(!turnoSeleccionado) throw new Error('Selecciona un turno');
+
+  const fecha = document.getElementById('inFechaFR').value;
+  const producto = document.getElementById('inProductoFR').value.trim();
+
+  if(!fecha) throw new Error('Ingresa la fecha');
+
+  const { error } = await sb.from('avc_fertirriego_aplicaciones').insert({
+    fertirriego_id: fertirriegoActual.id,
+    numero_turno: turnoSeleccionado,
+    fecha_aplicacion: fecha,
+    fertirriego_aplicado: producto || null,
+    observaciones: document.getElementById('inObsFR').value.trim() || null,
+    registrado_por: usuario.email
+  });
+
+  if(error) throw new Error(error.message);
+}
+
+function limpiarForm(){
+  document.getElementById('inHa').value = '';
+  document.getElementById('inObs').value = '';
+  document.getElementById('inObsFp').value = '';
+  document.getElementById('chkFinalizado').checked = false;
+  document.getElementById('checkFinalizado').classList.remove('checked');
+  document.getElementById('selFinca').value = '';
+  document.getElementById('selLote').innerHTML = '<option value="">Primero selecciona una finca</option>';
+  document.getElementById('selLote').disabled = true;
+  document.getElementById('infoLote').classList.remove('show');
+  document.getElementById('fieldObsFp').style.display = 'none';
+  ['inPersonalSiembra','inPersonalDespedrado','inPersonalGen'].forEach(id => {
+    document.getElementById(id).value = 0;
+    const v = document.getElementById('v'+id.substring(2));
+    if(v) v.textContent = '0';
+  });
+  document.getElementById('inHoraIni').value = '';
+  document.getElementById('inHoraFin').value = '';
+  document.getElementById('inQq').value = '';
+  if(actSel?.es_fertirriego){
+    document.getElementById('inProductoFR').value = '';
+    document.getElementById('inObsFR').value = '';
+    onFertirriegoSel();
+  }
+}
+
+// ========== HISTORIAL ==========
+async function renderHistorial(){
+  const cont = document.getElementById('histList');
+  cont.innerHTML = '<div class="empty">Cargando...</div>';
+
+  // Registros normales
+  const { data: regs } = await sb.from('avc_registros')
+    .select('*, avc_actividades(nombre_actividad), maestro_plantios(descripcion_finca, finca_lote)')
+    .eq('registrado_por', usuario.email)
+    .order('fecha_registro', { ascending: false })
+    .limit(50);
+
+  // Aplicaciones de fertirriego
+  const { data: frs } = await sb.from('avc_fertirriego_aplicaciones')
+    .select('*, avc_fertirriego(finca, codigo_actividad, avc_actividades(nombre_actividad))')
+    .eq('registrado_por', usuario.email)
+    .order('fecha_registro', { ascending: false })
+    .limit(50);
+
+  const items = [];
+
+  (regs || []).forEach(r => {
+    items.push({
+      tipo: 'reg',
+      fecha: r.fecha_registro,
+      titulo: r.maestro_plantios?.descripcion_finca + ' - ' + r.finca_lote,
+      actividad: r.avc_actividades?.nombre_actividad,
+      meta: `${r.ha_avance} ha · ${r.personal_cantidad || 0} personas`,
+      fp: r.fuera_de_plan
+    });
+  });
+
+  (frs || []).forEach(r => {
+    items.push({
+      tipo: 'fr',
+      fecha: r.fecha_registro,
+      titulo: r.avc_fertirriego?.finca,
+      actividad: r.avc_fertirriego?.avc_actividades?.nombre_actividad,
+      meta: `Turno ${r.numero_turno} · ${r.fertirriego_aplicado || 's/producto'}`,
+      fp: false
+    });
+  });
+
+  items.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+
+  if(items.length === 0){
+    cont.innerHTML = '<div class="empty">Aún no tienes registros</div>';
+    return;
+  }
+
+  cont.innerHTML = items.slice(0, 30).map(it => `
+    <div class="reg-item" style="margin-bottom:10px">
+      <div class="reg-head">
+        <span class="badge ${it.fp?'fp':''}">${it.actividad}${it.fp?' (fuera plan)':''}</span>
+        <span class="reg-fecha">${new Date(it.fecha).toLocaleString('es-HN', {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</span>
+      </div>
+      <div class="reg-finca">${it.titulo || ''}</div>
+      <div class="reg-meta">${it.meta}</div>
+    </div>
+  `).join('');
+}
+
+// ========== RESUMEN ==========
+async function renderResumen(){
+  const hoy = new Date().toISOString().split('T')[0];
+  const inicioSem = new Date();
+  inicioSem.setDate(inicioSem.getDate() - inicioSem.getDay());
+  const inicioSemStr = inicioSem.toISOString().split('T')[0];
+
+  const { data: regs } = await sb.from('avc_registros')
+    .select('fecha, ha_avance')
+    .eq('registrado_por', usuario.email)
+    .gte('fecha', inicioSemStr);
+
+  const hoyN = (regs || []).filter(r => r.fecha === hoy).length;
+  const semN = (regs || []).length;
+  const totalHa = (regs || []).reduce((s, r) => s + parseFloat(r.ha_avance || 0), 0);
+
+  document.getElementById('stHoy').textContent = hoyN;
+  document.getElementById('stSem').textContent = semN;
+  document.getElementById('stHa').textContent = totalHa.toFixed(2) + ' ha';
+}
+
+// ========== INICIO ==========
+window.addEventListener('load', async () => {
+  // Verificar sesión existente
+  const { data: { session } } = await sb.auth.getSession();
+  if(session && session.user){
+    const { data: perfil } = await sb.from('user_perfiles').select('*').eq('email', session.user.email).maybeSingle();
+    if(perfil && perfil.activo && perfil.rol_avc){
+      usuario = perfil;
+      await iniciarApp();
+    }
+  }
+});
+
+// Re-verificar fuera de plan cuando cambia la fecha
+document.getElementById('inFecha').addEventListener('change', () => {
+  const fl = document.getElementById('selLote').value;
+  if(fl) verificarFueraPlan(fl);
+});
 </script>
 </body>
 </html>
